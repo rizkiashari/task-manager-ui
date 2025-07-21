@@ -76,18 +76,18 @@ describe("Task Store", () => {
   });
 
   describe("addTask", () => {
-    it("should add a new task to the list", () => {
+    it("should add a new task to the beginning of the list", () => {
       const { result } = renderHook(() => useTaskStore());
 
       act(() => {
         result.current.addTask(mockTask);
       });
 
-      expect(result.current.tasks).toContain(mockTask);
+      expect(result.current.tasks[0]).toBe(mockTask);
       expect(result.current.tasks).toHaveLength(1);
     });
 
-    it("should add multiple tasks", () => {
+    it("should add multiple tasks with newest first", () => {
       const { result } = renderHook(() => useTaskStore());
 
       act(() => {
@@ -96,8 +96,8 @@ describe("Task Store", () => {
       });
 
       expect(result.current.tasks).toHaveLength(2);
-      expect(result.current.tasks).toContain(mockTask);
-      expect(result.current.tasks).toContain(mockTask2);
+      expect(result.current.tasks[0]).toBe(mockTask2); // Newest first
+      expect(result.current.tasks[1]).toBe(mockTask); // Older second
     });
   });
 

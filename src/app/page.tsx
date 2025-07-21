@@ -21,16 +21,6 @@ export default function Home() {
                 Organize and track your tasks efficiently
               </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="text-right">
-                <div className="text-sm text-gray-600">
-                  Built with Next.js + TypeScript
-                </div>
-                <div className="text-xs text-gray-500">
-                  Task Management Dashboard
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </header>

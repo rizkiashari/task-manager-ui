@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import { useTaskStore } from "../store/taskStore";
 import { taskApi } from "../services/api";
 import TaskItem from "./TaskItem";
+import NewTaskIndicator from "./NewTaskIndicator";
 
 const TaskList: React.FC = () => {
   const { tasks, loading, error, setTasks, setLoading, setError, clearError } =
@@ -86,14 +87,46 @@ const TaskList: React.FC = () => {
     );
   }
 
+  // Separate new tasks (last 24 hours) from older tasks
+  const now = new Date();
+  const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+  const newTasks = tasks.filter(
+    (task) => new Date(task.createdAt) > twentyFourHoursAgo
+  );
+
+  const olderTasks = tasks.filter(
+    (task) => new Date(task.createdAt) <= twentyFourHoursAgo
+  );
+
   return (
     <div className="space-y-4">
       <h2 className="text-lg font-semibold text-gray-900 mb-4">Your Tasks</h2>
-      <div className="space-y-3">
-        {tasks.map((task) => (
-          <TaskItem key={task.id} task={task} />
-        ))}
-      </div>
+
+      {/* Show new tasks with special styling */}
+      <NewTaskIndicator tasks={newTasks} />
+
+      {/* Show older tasks */}
+      {olderTasks.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center mb-3">
+            <span className="text-sm font-medium text-gray-600">
+              All Tasks ({olderTasks.length})
+            </span>
+            <div className="flex-1 border-t border-gray-200 ml-3"></div>
+          </div>
+
+          {olderTasks
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt).getTime() -
+                new Date(a.createdAt).getTime()
+            )
+            .map((task) => (
+              <TaskItem key={task.id} task={task} />
+            ))}
+        </div>
+      )}
     </div>
   );
 };
