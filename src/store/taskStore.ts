@@ -1,64 +1,54 @@
 import { create } from "zustand";
-import { Task, UpdateTaskRequest } from "../types/task";
+import moment from "moment";
+import { Task } from "../types/task";
+import { taskApi } from "../services/api";
 
 interface TaskStore {
   tasks: Task[];
   loading: boolean;
   error: string | null;
-
-  // Actions
   setTasks: (tasks: Task[]) => void;
-  addTask: (task: Task) => void;
-  updateTask: (id: string, updates: UpdateTaskRequest) => void;
-  deleteTask: (id: string) => void;
-  toggleTask: (id: string) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  addTask: (task: Task) => void;
+  deleteTask: (id: string) => void;
+  toggleTask: (id: string) => void;
   clearError: () => void;
 }
 
-export const useTaskStore = create<TaskStore>((set) => ({
+export const useTaskStore = create<TaskStore>((set, get) => ({
   tasks: [],
   loading: false,
   error: null,
 
   setTasks: (tasks) => set({ tasks }),
+  setLoading: (loading) => set({ loading }),
+  setError: (error) => set({ error }),
 
-  addTask: (task) =>
-    set((state) => ({
-      tasks: [task, ...state.tasks], // Add new task at the beginning
-    })),
+  addTask: (task) => {
+    const { tasks } = get();
+    set({ tasks: [task, ...tasks] });
+  },
 
-  updateTask: (id, updates) =>
-    set((state) => ({
-      tasks: state.tasks.map((task) =>
-        task.id === id
-          ? { ...task, ...updates, updatedAt: new Date().toISOString() }
-          : task
-      ),
-    })),
+  deleteTask: (id) => {
+    const { tasks } = get();
+    set({ tasks: tasks.filter((task) => task.id !== id) });
+  },
 
-  deleteTask: (id) =>
-    set((state) => ({
-      tasks: state.tasks.filter((task) => task.id !== id),
-    })),
-
-  toggleTask: (id) =>
-    set((state) => ({
-      tasks: state.tasks.map((task) =>
+  toggleTask: (id) => {
+    const { tasks } = get();
+    set({
+      tasks: tasks.map((task) =>
         task.id === id
           ? {
               ...task,
               completed: !task.completed,
-              updatedAt: new Date().toISOString(),
+              updatedAt: moment().toISOString(),
             }
           : task
       ),
-    })),
-
-  setLoading: (loading) => set({ loading }),
-
-  setError: (error) => set({ error }),
+    });
+  },
 
   clearError: () => set({ error: null }),
 }));

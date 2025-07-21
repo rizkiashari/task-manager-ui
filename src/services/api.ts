@@ -1,20 +1,14 @@
 import axios from "axios";
-import { Task, CreateTaskRequest, UpdateTaskRequest } from "../types/task";
+import { Task, CreateTaskRequest } from "../types/task";
 
-// JSON Server API URL
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
-// Create Axios instance
+// Create axios instance for Next.js API routes
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
+  baseURL: "/api",
 });
 
 export const taskApi = {
   // Get all tasks
-  getTasks: async (): Promise<Task[]> => {
+  async getTasks(): Promise<Task[]> {
     try {
       const response = await api.get("/tasks");
       return response.data;
@@ -25,7 +19,7 @@ export const taskApi = {
   },
 
   // Create a new task
-  createTask: async (taskData: CreateTaskRequest): Promise<Task> => {
+  async createTask(taskData: CreateTaskRequest): Promise<Task> {
     try {
       const newTask = {
         ...taskData,
@@ -42,50 +36,24 @@ export const taskApi = {
     }
   },
 
-  // Update a task
-  updateTask: async (id: string, updates: UpdateTaskRequest): Promise<Task> => {
-    try {
-      const updateData = {
-        ...updates,
-        updatedAt: new Date().toISOString(),
-      };
-
-      const response = await api.put(`/tasks/${id}`, updateData);
-      return response.data;
-    } catch (error) {
-      console.error("Error updating task:", error);
-      throw new Error("Failed to update task");
-    }
-  },
-
   // Delete a task
-  deleteTask: async (id: string): Promise<void> => {
+  async deleteTask(taskId: string): Promise<void> {
     try {
-      await api.delete(`/tasks/${id}`);
+      await api.delete(`/tasks/${taskId}`);
     } catch (error) {
       console.error("Error deleting task:", error);
       throw new Error("Failed to delete task");
     }
   },
 
-  // Toggle task completion
-  toggleTask: async (id: string): Promise<Task> => {
+  // Get a single task (helper method)
+  async getTask(taskId: string): Promise<Task> {
     try {
-      // First get the current task
-      const getResponse = await api.get(`/tasks/${id}`);
-      const currentTask = getResponse.data;
-
-      // Toggle the completed status
-      const updateData = {
-        completed: !currentTask.completed,
-        updatedAt: new Date().toISOString(),
-      };
-
-      const response = await api.put(`/tasks/${id}`, updateData);
+      const response = await api.get(`/tasks/${taskId}`);
       return response.data;
     } catch (error) {
-      console.error("Error toggling task:", error);
-      throw new Error("Failed to toggle task");
+      console.error("Error fetching task:", error);
+      throw new Error("Failed to fetch task");
     }
   },
 };

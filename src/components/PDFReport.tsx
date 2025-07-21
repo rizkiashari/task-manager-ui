@@ -1,157 +1,127 @@
-"use client";
-
-import React, { useState } from "react";
-import { useTaskStore } from "../store/taskStore";
+import React from "react";
 import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import moment from "moment";
+import { Task, Priority } from "../types/task";
 
-const PDFReport: React.FC = () => {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const { tasks } = useTaskStore();
+// Extend jsPDF type to include lastAutoTable
+declare module "jspdf" {
+  interface jsPDF {
+    lastAutoTable: {
+      finalY: number;
+    };
+  }
+}
 
+interface PDFReportProps {
+  tasks: Task[];
+  onGenerate: () => void;
+  isGenerating: boolean;
+}
+
+export const PDFReport: React.FC<PDFReportProps> = ({
+  tasks,
+  onGenerate,
+  isGenerating,
+}) => {
   const generatePDF = async () => {
-    if (tasks.length === 0) {
-      alert("No tasks available to generate report.");
-      return;
-    }
-
-    setIsGenerating(true);
+    onGenerate();
 
     try {
       const doc = new jsPDF();
 
-      // Add header
+      // Title
       doc.setFontSize(20);
-      doc.setFont("helvetica", "bold");
       doc.text("Task Management Report", 20, 20);
 
-      // Add timestamp
+      // Date
       doc.setFontSize(12);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Generated on: ${new Date().toLocaleString()}`, 20, 30);
+      doc.text(
+        `Generated on: ${moment().format("MMMM DD, YYYY [at] h:mm A")}`,
+        20,
+        30
+      );
 
-      // Add app name
-      doc.text("Task Manager Dashboard", 20, 40);
-
-      // Add summary
-      const completedTasks = tasks.filter((task) => task.completed).length;
+      // Statistics
       const totalTasks = tasks.length;
-      const completionRate =
-        totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      const completedTasks = tasks.filter((task) => task.completed).length;
+      const pendingTasks = totalTasks - completedTasks;
 
       doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("Summary", 20, 55);
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "normal");
-      doc.text(`Total Tasks: ${totalTasks}`, 20, 65);
-      doc.text(`Completed: ${completedTasks}`, 20, 75);
-      doc.text(`Completion Rate: ${completionRate}%`, 20, 85);
+      doc.text("Summary Statistics", 20, 45);
+      doc.setFontSize(10);
+      doc.text(`Total Tasks: ${totalTasks}`, 20, 55);
+      doc.text(`Completed: ${completedTasks}`, 20, 62);
+      doc.text(`Pending: ${pendingTasks}`, 20, 69);
 
-      // Add tasks list
-      doc.setFontSize(14);
-      doc.setFont("helvetica", "bold");
-      doc.text("Task Details", 20, 105);
+      // Task Table
+      const tableData = tasks.map((task) => [
+        task.title,
+        task.description || "-",
+        task.completed ? "Completed" : "Pending",
+        moment(task.createdAt).format("MMM DD, YYYY"),
+      ]);
 
-      let yPosition = 115;
-      const lineHeight = 8;
-      const maxWidth = 170;
-
-      tasks.forEach((task, index) => {
-        // Check if we need a new page
-        if (yPosition > 270) {
-          doc.addPage();
-          yPosition = 20;
-        }
-
-        doc.setFontSize(12);
-        doc.setFont("helvetica", "bold");
-
-        // Task title with status indicator
-        const status = task.completed ? "✓" : "○";
-        const title = `${status} ${task.title}`;
-        doc.text(title, 20, yPosition);
-
-        yPosition += lineHeight;
-
-        // Task description
-        if (task.description) {
-          doc.setFontSize(10);
-          doc.setFont("helvetica", "normal");
-
-          // Split description into multiple lines if needed
-          const words = task.description.split(" ");
-          let currentLine = "";
-
-          for (const word of words) {
-            const testLine = currentLine + word + " ";
-            const testWidth = doc.getTextWidth(testLine);
-
-            if (testWidth > maxWidth && currentLine !== "") {
-              doc.text(currentLine, 25, yPosition);
-              yPosition += lineHeight;
-              currentLine = word + " ";
-            } else {
-              currentLine = testLine;
-            }
-          }
-
-          if (currentLine) {
-            doc.text(currentLine, 25, yPosition);
-            yPosition += lineHeight;
-          }
-        }
-
-        // Task metadata
-        doc.setFontSize(8);
-        doc.setFont("helvetica", "italic");
-        const metadata = `Created: ${new Date(
-          task.createdAt
-        ).toLocaleDateString()}`;
-        doc.text(metadata, 25, yPosition);
-
-        yPosition += lineHeight + 2;
-
-        // Add separator line
-        if (index < tasks.length - 1) {
-          doc.setDrawColor(200, 200, 200);
-          doc.line(20, yPosition, 190, yPosition);
-          yPosition += 5;
-        }
+      autoTable(doc, {
+        head: [["Title", "Description", "Status", "Created"]],
+        body: tableData,
+        startY: 80,
+        styles: {
+          fontSize: 8,
+          cellPadding: 2,
+        },
+        headStyles: {
+          fillColor: [59, 130, 246], // Blue color
+          textColor: 255,
+          fontStyle: "bold",
+        },
+        alternateRowStyles: {
+          fillColor: [248, 250, 252], // Light gray
+        },
+        columnStyles: {
+          0: { cellWidth: 50 }, // Title
+          1: { cellWidth: 50 }, // Description
+          2: { cellWidth: 25 }, // Status
+          3: { cellWidth: 30 }, // Created
+        },
       });
 
-      // Save the PDF
-      const fileName = `task-report-${
-        new Date().toISOString().split("T")[0]
-      }.pdf`;
-      doc.save(fileName);
+      // Footer
+      const pageCount = doc.getNumberOfPages();
+      for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(
+          `Page ${i} of ${pageCount}`,
+          doc.internal.pageSize.width - 30,
+          doc.internal.pageSize.height - 10
+        );
+      }
+
+      // Download the PDF
+      doc.save(`task-report-${moment().format("YYYY-MM-DD HH:mm:ss")}.pdf`);
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("Failed to generate PDF report. Please try again.");
-    } finally {
-      setIsGenerating(false);
     }
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
+    <div className="bg-white p-4 rounded-lg shadow-md">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">
-            Generate Report
-          </h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Download a PDF report of all your tasks
+          <h3 className="text-lg font-semibold text-gray-900">📊 PDF Report</h3>
+          <p className="text-sm text-gray-600">
+            Generate a comprehensive PDF report of all tasks
           </p>
         </div>
-
         <div className="text-right">
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-500">
             Total Tasks: <span className="font-semibold">{tasks.length}</span>
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-500">
             Completed:{" "}
             <span className="font-semibold text-green-600">
-              {tasks.filter((task) => task.completed).length}
+              {tasks.filter((t) => t.completed).length}
             </span>
           </div>
         </div>
@@ -160,12 +130,17 @@ const PDFReport: React.FC = () => {
       <button
         onClick={generatePDF}
         disabled={isGenerating || tasks.length === 0}
-        className="w-full inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+        className={`w-full flex items-center justify-center px-4 py-2 rounded-md text-white font-medium transition-colors ${
+          isGenerating || tasks.length === 0
+            ? "bg-gray-400 cursor-not-allowed"
+            : "bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+        }`}
       >
         {isGenerating ? (
           <>
             <svg
-              className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+              className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+              xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
             >
@@ -183,12 +158,12 @@ const PDFReport: React.FC = () => {
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               ></path>
             </svg>
-            Generating Report...
+            Generating PDF...
           </>
         ) : (
           <>
             <svg
-              className="w-4 h-4 mr-2"
+              className="w-5 h-5 mr-2"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -200,18 +175,26 @@ const PDFReport: React.FC = () => {
                 d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
               />
             </svg>
-            Download Report
+            Download PDF Report
           </>
         )}
       </button>
 
       {tasks.length === 0 && (
-        <p className="text-sm text-gray-500 text-center mt-2">
-          No tasks available for report generation
+        <p className="text-sm text-gray-500 mt-2 text-center">
+          No tasks available to generate report
         </p>
       )}
+
+      <div className="mt-4 text-xs text-gray-500">
+        <p>📋 Report includes:</p>
+        <ul className="list-disc list-inside mt-1 space-y-1">
+          <li>Task summary and statistics</li>
+          <li>Complete task list with title and description</li>
+          <li>Task status (completed/pending)</li>
+          <li>Creation dates</li>
+        </ul>
+      </div>
     </div>
   );
 };
-
-export default PDFReport;

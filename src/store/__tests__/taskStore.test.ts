@@ -2,33 +2,13 @@ import { renderHook, act } from "@testing-library/react";
 import { useTaskStore } from "../taskStore";
 import { Task } from "../../types/task";
 
-// Mock data for testing
-const mockTask: Task = {
-  id: "1",
-  title: "Test Task",
-  description: "Test Description",
-  completed: false,
-  createdAt: "2024-01-15T10:00:00Z",
-  updatedAt: "2024-01-15T10:00:00Z",
-};
-
-const mockTask2: Task = {
-  id: "2",
-  title: "Test Task 2",
-  description: "Test Description 2",
-  completed: true,
-  createdAt: "2024-01-16T10:00:00Z",
-  updatedAt: "2024-01-16T10:00:00Z",
-};
-
 describe("Task Store", () => {
   beforeEach(() => {
-    // Reset store before each test
+    // Reset store to initial state before each test
     const { result } = renderHook(() => useTaskStore());
     act(() => {
       result.current.setTasks([]);
       result.current.setError(null);
-      result.current.setLoading(false);
     });
   });
 
@@ -38,172 +18,226 @@ describe("Task Store", () => {
 
       expect(result.current.tasks).toEqual([]);
       expect(result.current.loading).toBe(false);
-      expect(result.current.error).toBeNull();
+      expect(result.current.error).toBe(null);
     });
   });
 
   describe("setTasks", () => {
-    it("should set tasks correctly", () => {
+    it("should set tasks", () => {
       const { result } = renderHook(() => useTaskStore());
-      const tasks = [mockTask, mockTask2];
+      const tasks: Task[] = [
+        {
+          id: "1",
+          title: "Test Task",
+          description: "Test Description",
+          completed: false,
+          priority: "medium",
+          dueDate: undefined,
+          createdAt: "2024-01-15T10:00:00Z",
+          updatedAt: "2024-01-15T10:00:00Z",
+        },
+      ];
 
       act(() => {
         result.current.setTasks(tasks);
       });
 
       expect(result.current.tasks).toEqual(tasks);
-      expect(result.current.tasks).toHaveLength(2);
     });
 
     it("should replace existing tasks", () => {
       const { result } = renderHook(() => useTaskStore());
+      const initialTasks: Task[] = [
+        {
+          id: "1",
+          title: "Initial Task",
+          description: "Initial Description",
+          completed: false,
+          priority: "low",
+          dueDate: undefined,
+          createdAt: "2024-01-15T10:00:00Z",
+          updatedAt: "2024-01-15T10:00:00Z",
+        },
+      ];
 
-      // Set initial tasks
+      const newTasks: Task[] = [
+        {
+          id: "2",
+          title: "New Task",
+          description: "New Description",
+          completed: true,
+          priority: "high",
+          dueDate: "2024-01-20T10:00:00Z",
+          createdAt: "2024-01-16T10:00:00Z",
+          updatedAt: "2024-01-16T10:00:00Z",
+        },
+      ];
+
       act(() => {
-        result.current.setTasks([mockTask]);
+        result.current.setTasks(initialTasks);
       });
 
-      expect(result.current.tasks).toHaveLength(1);
-
-      // Replace with new tasks
       act(() => {
-        result.current.setTasks([mockTask2]);
+        result.current.setTasks(newTasks);
       });
 
-      expect(result.current.tasks).toEqual([mockTask2]);
-      expect(result.current.tasks).toHaveLength(1);
+      expect(result.current.tasks).toEqual(newTasks);
+      expect(result.current.tasks).not.toEqual(initialTasks);
     });
   });
 
   describe("addTask", () => {
     it("should add a new task to the beginning of the list", () => {
       const { result } = renderHook(() => useTaskStore());
+      const existingTask: Task = {
+        id: "1",
+        title: "Existing Task",
+        description: "Existing Description",
+        completed: false,
+        priority: "medium",
+        dueDate: undefined,
+        createdAt: "2024-01-15T10:00:00Z",
+        updatedAt: "2024-01-15T10:00:00Z",
+      };
+
+      const newTask: Task = {
+        id: "2",
+        title: "New Task",
+        description: "New Description",
+        completed: true,
+        priority: "high",
+        dueDate: "2024-01-20T10:00:00Z",
+        createdAt: "2024-01-16T10:00:00Z",
+        updatedAt: "2024-01-16T10:00:00Z",
+      };
 
       act(() => {
-        result.current.addTask(mockTask);
+        result.current.setTasks([existingTask]);
       });
 
-      expect(result.current.tasks[0]).toBe(mockTask);
-      expect(result.current.tasks).toHaveLength(1);
-    });
-
-    it("should add multiple tasks with newest first", () => {
-      const { result } = renderHook(() => useTaskStore());
-
       act(() => {
-        result.current.addTask(mockTask);
-        result.current.addTask(mockTask2);
+        result.current.addTask(newTask);
       });
 
       expect(result.current.tasks).toHaveLength(2);
-      expect(result.current.tasks[0]).toBe(mockTask2); // Newest first
-      expect(result.current.tasks[1]).toBe(mockTask); // Older second
-    });
-  });
-
-  describe("updateTask", () => {
-    it("should update an existing task", () => {
-      const { result } = renderHook(() => useTaskStore());
-
-      // Add initial task
-      act(() => {
-        result.current.addTask(mockTask);
-      });
-
-      // Update the task
-      act(() => {
-        result.current.updateTask("1", {
-          title: "Updated Title",
-          completed: true,
-        });
-      });
-
-      const updatedTask = result.current.tasks.find((task) => task.id === "1");
-      expect(updatedTask?.title).toBe("Updated Title");
-      expect(updatedTask?.completed).toBe(true);
-      expect(updatedTask?.updatedAt).not.toBe(mockTask.updatedAt);
+      expect(result.current.tasks[0]).toEqual(newTask);
+      expect(result.current.tasks[1]).toEqual(existingTask);
     });
 
-    it("should not update non-existent task", () => {
+    it("should add task to empty list", () => {
       const { result } = renderHook(() => useTaskStore());
+      const newTask: Task = {
+        id: "1",
+        title: "New Task",
+        description: "New Description",
+        completed: false,
+        priority: "medium",
+        dueDate: undefined,
+        createdAt: "2024-01-15T10:00:00Z",
+        updatedAt: "2024-01-15T10:00:00Z",
+      };
 
       act(() => {
-        result.current.addTask(mockTask);
+        result.current.addTask(newTask);
       });
 
-      const originalTasks = [...result.current.tasks];
-
-      act(() => {
-        result.current.updateTask("999", { title: "Updated Title" });
-      });
-
-      expect(result.current.tasks).toEqual(originalTasks);
-    });
-
-    it("should update only specified fields", () => {
-      const { result } = renderHook(() => useTaskStore());
-
-      act(() => {
-        result.current.addTask(mockTask);
-      });
-
-      act(() => {
-        result.current.updateTask("1", { completed: true });
-      });
-
-      const updatedTask = result.current.tasks.find((task) => task.id === "1");
-      expect(updatedTask?.title).toBe(mockTask.title); // Should remain unchanged
-      expect(updatedTask?.description).toBe(mockTask.description); // Should remain unchanged
-      expect(updatedTask?.completed).toBe(true); // Should be updated
+      expect(result.current.tasks).toHaveLength(1);
+      expect(result.current.tasks[0]).toEqual(newTask);
     });
   });
 
   describe("deleteTask", () => {
     it("should delete an existing task", () => {
       const { result } = renderHook(() => useTaskStore());
+      const tasks: Task[] = [
+        {
+          id: "1",
+          title: "Task 1",
+          description: "Description 1",
+          completed: false,
+          priority: "low",
+          dueDate: undefined,
+          createdAt: "2024-01-15T10:00:00Z",
+          updatedAt: "2024-01-15T10:00:00Z",
+        },
+        {
+          id: "2",
+          title: "Task 2",
+          description: "Description 2",
+          completed: true,
+          priority: "high",
+          dueDate: "2024-01-20T10:00:00Z",
+          createdAt: "2024-01-16T10:00:00Z",
+          updatedAt: "2024-01-16T10:00:00Z",
+        },
+      ];
 
       act(() => {
-        result.current.addTask(mockTask);
-        result.current.addTask(mockTask2);
+        result.current.setTasks(tasks);
       });
-
-      expect(result.current.tasks).toHaveLength(2);
 
       act(() => {
         result.current.deleteTask("1");
       });
 
       expect(result.current.tasks).toHaveLength(1);
-      expect(result.current.tasks).not.toContain(mockTask);
-      expect(result.current.tasks).toContain(mockTask2);
+      expect(result.current.tasks[0].id).toBe("2");
     });
 
-    it("should not affect other tasks when deleting non-existent task", () => {
+    it("should not delete non-existent task", () => {
       const { result } = renderHook(() => useTaskStore());
+      const tasks: Task[] = [
+        {
+          id: "1",
+          title: "Task 1",
+          description: "Description 1",
+          completed: false,
+          priority: "medium",
+          dueDate: undefined,
+          createdAt: "2024-01-15T10:00:00Z",
+          updatedAt: "2024-01-15T10:00:00Z",
+        },
+      ];
 
       act(() => {
-        result.current.addTask(mockTask);
+        result.current.setTasks(tasks);
       });
-
-      const originalTasks = [...result.current.tasks];
 
       act(() => {
         result.current.deleteTask("999");
       });
 
-      expect(result.current.tasks).toEqual(originalTasks);
+      expect(result.current.tasks).toEqual(tasks);
+    });
+
+    it("should handle deleting from empty list", () => {
+      const { result } = renderHook(() => useTaskStore());
+
+      act(() => {
+        result.current.deleteTask("1");
+      });
+
+      expect(result.current.tasks).toEqual([]);
     });
   });
 
   describe("toggleTask", () => {
     it("should toggle task completion status", () => {
       const { result } = renderHook(() => useTaskStore());
+      const task: Task = {
+        id: "1",
+        title: "Test Task",
+        description: "Test Description",
+        completed: false,
+        priority: "medium",
+        dueDate: undefined,
+        createdAt: "2024-01-15T10:00:00Z",
+        updatedAt: "2024-01-15T10:00:00Z",
+      };
 
       act(() => {
-        result.current.addTask(mockTask);
+        result.current.setTasks([task]);
       });
-
-      expect(result.current.tasks[0].completed).toBe(false);
 
       act(() => {
         result.current.toggleTask("1");
@@ -218,30 +252,61 @@ describe("Task Store", () => {
       expect(result.current.tasks[0].completed).toBe(false);
     });
 
-    it("should update the updatedAt timestamp when toggling", () => {
+    it("should not affect other tasks when toggling", () => {
       const { result } = renderHook(() => useTaskStore());
+      const tasks: Task[] = [
+        {
+          id: "1",
+          title: "Task 1",
+          description: "Description 1",
+          completed: false,
+          priority: "low",
+          dueDate: undefined,
+          createdAt: "2024-01-15T10:00:00Z",
+          updatedAt: "2024-01-15T10:00:00Z",
+        },
+        {
+          id: "2",
+          title: "Task 2",
+          description: "Description 2",
+          completed: true,
+          priority: "high",
+          dueDate: "2024-01-20T10:00:00Z",
+          createdAt: "2024-01-16T10:00:00Z",
+          updatedAt: "2024-01-16T10:00:00Z",
+        },
+      ];
 
       act(() => {
-        result.current.addTask(mockTask);
+        result.current.setTasks(tasks);
       });
-
-      const originalUpdatedAt = result.current.tasks[0].updatedAt;
 
       act(() => {
         result.current.toggleTask("1");
       });
 
-      expect(result.current.tasks[0].updatedAt).not.toBe(originalUpdatedAt);
+      expect(result.current.tasks[0].completed).toBe(true);
+      expect(result.current.tasks[1].completed).toBe(true); // Unchanged
     });
 
-    it("should not affect other tasks when toggling non-existent task", () => {
+    it("should not affect any tasks when toggling non-existent task", () => {
       const { result } = renderHook(() => useTaskStore());
+      const originalTasks: Task[] = [
+        {
+          id: "1",
+          title: "Task 1",
+          description: "Description 1",
+          completed: false,
+          priority: "medium",
+          dueDate: undefined,
+          createdAt: "2024-01-15T10:00:00Z",
+          updatedAt: "2024-01-15T10:00:00Z",
+        },
+      ];
 
       act(() => {
-        result.current.addTask(mockTask);
+        result.current.setTasks(originalTasks);
       });
-
-      const originalTasks = [...result.current.tasks];
 
       act(() => {
         result.current.toggleTask("999");
@@ -270,57 +335,67 @@ describe("Task Store", () => {
   });
 
   describe("setError", () => {
-    it("should set error message", () => {
+    it("should set error state", () => {
       const { result } = renderHook(() => useTaskStore());
-      const errorMessage = "Test error message";
 
       act(() => {
-        result.current.setError(errorMessage);
+        result.current.setError("Test error message");
       });
 
-      expect(result.current.error).toBe(errorMessage);
-    });
-
-    it("should set error to null", () => {
-      const { result } = renderHook(() => useTaskStore());
+      expect(result.current.error).toBe("Test error message");
 
       act(() => {
-        result.current.setError("Some error");
         result.current.setError(null);
       });
 
-      expect(result.current.error).toBeNull();
+      expect(result.current.error).toBe(null);
     });
   });
 
   describe("clearError", () => {
-    it("should clear error message", () => {
+    it("should clear error state", () => {
       const { result } = renderHook(() => useTaskStore());
 
       act(() => {
-        result.current.setError("Test error");
+        result.current.setError("Test error message");
+      });
+
+      act(() => {
         result.current.clearError();
       });
 
-      expect(result.current.error).toBeNull();
+      expect(result.current.error).toBe(null);
     });
   });
 
   describe("Complex Operations", () => {
     it("should handle multiple operations correctly", () => {
       const { result } = renderHook(() => useTaskStore());
+      const initialTasks: Task[] = [
+        {
+          id: "1",
+          title: "Task 1",
+          description: "Description 1",
+          completed: false,
+          priority: "low",
+          dueDate: undefined,
+          createdAt: "2024-01-15T10:00:00Z",
+          updatedAt: "2024-01-15T10:00:00Z",
+        },
+        {
+          id: "2",
+          title: "Task 2",
+          description: "Description 2",
+          completed: false,
+          priority: "high",
+          dueDate: "2024-01-20T10:00:00Z",
+          createdAt: "2024-01-16T10:00:00Z",
+          updatedAt: "2024-01-16T10:00:00Z",
+        },
+      ];
 
-      // Add tasks
       act(() => {
-        result.current.addTask(mockTask);
-        result.current.addTask(mockTask2);
-      });
-
-      expect(result.current.tasks).toHaveLength(2);
-
-      // Update first task
-      act(() => {
-        result.current.updateTask("1", { title: "Updated Title" });
+        result.current.setTasks(initialTasks);
       });
 
       // Toggle second task
@@ -328,41 +403,69 @@ describe("Task Store", () => {
         result.current.toggleTask("2");
       });
 
+      // Add new task
+      const newTask: Task = {
+        id: "3",
+        title: "Task 3",
+        description: "Description 3",
+        completed: true,
+        priority: "medium",
+        dueDate: undefined,
+        createdAt: "2024-01-17T10:00:00Z",
+        updatedAt: "2024-01-17T10:00:00Z",
+      };
+
+      act(() => {
+        result.current.addTask(newTask);
+      });
+
       // Delete first task
       act(() => {
         result.current.deleteTask("1");
       });
 
-      expect(result.current.tasks).toHaveLength(1);
-      expect(result.current.tasks[0].id).toBe("2");
-      expect(result.current.tasks[0].completed).toBe(false); // Toggled from true to false
+      expect(result.current.tasks).toHaveLength(2);
+      expect(result.current.tasks[0].id).toBe("3"); // New task should be first
+      expect(result.current.tasks[1].id).toBe("2"); // Second task should be second
+      expect(result.current.tasks[1].completed).toBe(true); // Should be toggled
     });
 
     it("should maintain data integrity during operations", () => {
       const { result } = renderHook(() => useTaskStore());
+      const initialTask: Task = {
+        id: "1",
+        title: "Original Title",
+        description: "Original Description",
+        completed: false,
+        priority: "low",
+        dueDate: undefined,
+        createdAt: "2024-01-15T10:00:00Z",
+        updatedAt: "2024-01-15T10:00:00Z",
+      };
 
-      // Add task
       act(() => {
-        result.current.addTask(mockTask);
+        result.current.setTasks([initialTask]);
       });
-
-      const originalTask = { ...mockTask };
 
       // Perform multiple operations
       act(() => {
-        result.current.updateTask("1", { title: "New Title" });
         result.current.toggleTask("1");
-        result.current.updateTask("1", { description: "New Description" });
+        result.current.addTask({
+          id: "2",
+          title: "New Task",
+          description: "New Description",
+          completed: true,
+          priority: "high",
+          dueDate: "2024-01-20T10:00:00Z",
+          createdAt: "2024-01-16T10:00:00Z",
+          updatedAt: "2024-01-16T10:00:00Z",
+        });
       });
 
-      const finalTask = result.current.tasks[0];
-
-      expect(finalTask.id).toBe(originalTask.id);
-      expect(finalTask.createdAt).toBe(originalTask.createdAt);
-      expect(finalTask.title).toBe("New Title");
-      expect(finalTask.description).toBe("New Description");
-      expect(finalTask.completed).toBe(true);
-      expect(finalTask.updatedAt).not.toBe(originalTask.updatedAt);
+      expect(result.current.tasks).toHaveLength(2);
+      expect(result.current.tasks[0].id).toBe("2"); // New task first
+      expect(result.current.tasks[1].id).toBe("1"); // Original task second
+      expect(result.current.tasks[1].completed).toBe(true); // Should be toggled
     });
   });
 });

@@ -1,71 +1,54 @@
 {
   "tasks": [
     {
-      "id": "2",
-      "title": "Review code changes",
-      "description": "Review pull requests and provide feedback",
-      "completed": true,
-      "createdAt": "2024-01-14T14:30:00Z",
-      "updatedAt": "2024-01-15T09:15:00Z"
+      "id": "1",
+      "title": "Learn Next.js",
+      "description": "Study Next.js framework and its features",
+      "completed": false,
+      "priority": "high",
+      "dueDate": "2024-01-20T18:00:00Z",
+      "createdAt": "2024-01-15T10:00:00Z",
+      "updatedAt": "2024-01-15T10:00:00Z"
     },
     {
+      "id": "2",
+      "title": "Build a Todo App",
+      "description": "Create a full-stack todo application",
       "completed": true,
-      "updatedAt": "2025-07-21T06:28:29.070Z",
-      "id": "3"
+      "priority": "medium",
+      "dueDate": "2024-01-16T17:00:00Z",
+      "createdAt": "2024-01-14T09:00:00Z",
+      "updatedAt": "2024-01-16T11:00:00Z"
+    },
+    {
+      "id": "3",
+      "title": "Write Unit Tests",
+      "description": "Implement comprehensive test coverage",
+      "completed": false,
+      "priority": "urgent",
+      "dueDate": "2024-01-18T16:00:00Z",
+      "createdAt": "2024-01-13T08:00:00Z",
+      "updatedAt": "2024-01-13T08:00:00Z"
     },
     {
       "id": "4",
-      "title": "Implement user authentication",
-      "description": "Add login and registration functionality with JWT tokens",
+      "title": "Review Code",
+      "description": "Review pull requests and provide feedback",
       "completed": false,
-      "createdAt": "2024-01-12T11:20:00Z",
-      "updatedAt": "2024-01-12T11:20:00Z"
+      "priority": "low",
+      "dueDate": "2024-01-25T15:00:00Z",
+      "createdAt": "2024-01-17T14:00:00Z",
+      "updatedAt": "2024-01-17T14:00:00Z"
     },
     {
       "id": "5",
-      "title": "Design database schema",
-      "description": "Create ERD and implement database tables for the application",
-      "completed": true,
-      "createdAt": "2024-01-11T09:00:00Z",
-      "updatedAt": "2024-01-11T15:30:00Z"
-    },
-    {
-      "id": "6",
-      "title": "Write unit tests",
-      "description": "Create comprehensive test coverage for all components",
+      "title": "Deploy to Production",
+      "description": "Deploy the application to production environment",
       "completed": false,
-      "createdAt": "2024-01-10T14:15:00Z",
-      "updatedAt": "2024-01-10T14:15:00Z"
-    },
-    {
-      "id": "7",
-      "title": "Deploy to production",
-      "description": "Configure CI/CD pipeline and deploy application to production server",
-      "completed": false,
-      "createdAt": "2024-01-09T16:45:00Z",
-      "updatedAt": "2024-01-09T16:45:00Z"
-    },
-    {
-      "id": "8",
-      "title": "Performance optimization",
-      "description": "Optimize application performance and reduce loading times",
-      "completed": false,
-      "createdAt": "2024-01-08T13:30:00Z",
-      "updatedAt": "2024-01-08T13:30:00Z"
-    },
-    {
-      "id": "e19c",
-      "title": "Test Task via Axios",
-      "description": "This task was created via API call",
-      "completed": false
-    },
-    {
-      "id": "828d",
-      "title": "xcv",
-      "description": "axcv",
-      "completed": false,
-      "createdAt": "2025-07-21T06:36:54.965Z",
-      "updatedAt": "2025-07-21T06:36:54.965Z"
+      "priority": "high",
+      "dueDate": "2024-01-22T20:00:00Z",
+      "createdAt": "2024-01-16T12:00:00Z",
+      "updatedAt": "2024-01-16T12:00:00Z"
     }
   ]
 }
