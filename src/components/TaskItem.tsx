@@ -17,7 +17,6 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
     actionState,
     toggleTask,
     showDeleteConfirm,
-    hideDeleteConfirm,
     deleteTask,
     cancelDelete,
     isTaskToggling,

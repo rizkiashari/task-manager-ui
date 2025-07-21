@@ -2,7 +2,7 @@ import React from "react";
 import { useTaskForm } from "../hooks/useTaskForm";
 import { useTasks } from "../hooks/useTasks";
 import { ConfirmDialog } from "./ConfirmDialog";
-import { SuccessIcon, ErrorIcon, SpinnerIcon, PlusIcon } from "./icons";
+import { ErrorIcon, SpinnerIcon, PlusIcon } from "./icons";
 
 export const AddTaskForm: React.FC = () => {
   const { createTask } = useTasks();

@@ -132,6 +132,7 @@ export const usePDFReport = () => {
         setIsGenerating(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [options]
   );
 
