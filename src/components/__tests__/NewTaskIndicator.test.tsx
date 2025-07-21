@@ -1,7 +1,8 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import NewTaskIndicator from "../NewTaskIndicator";
 import { Task } from "../../types/task";
+import { taskApi } from "../../services/api";
 
 // Mock the store
 const mockUseTaskStore = {
@@ -14,17 +15,15 @@ jest.mock("../../store/taskStore", () => ({
 }));
 
 // Mock the API service
-jest.mock("../../services/api", () => ({
-  taskApi: {
-    toggleTask: jest.fn(),
-    deleteTask: jest.fn(),
-  },
-}));
+jest.mock("../../services/api");
 
 const mockTaskApi = {
   toggleTask: jest.fn(),
   deleteTask: jest.fn(),
 };
+
+(taskApi as jest.Mocked<typeof taskApi>).toggleTask = mockTaskApi.toggleTask;
+(taskApi as jest.Mocked<typeof taskApi>).deleteTask = mockTaskApi.deleteTask;
 
 // Mock data
 const createMockTask = (
@@ -182,7 +181,9 @@ describe("NewTaskIndicator", () => {
     const checkbox = screen.getByTitle("Toggle task completion");
     fireEvent.click(checkbox);
 
-    expect(mockTaskApi.toggleTask).toHaveBeenCalledWith("1");
+    await waitFor(() => {
+      expect(mockTaskApi.toggleTask).toHaveBeenCalledWith("1");
+    });
   });
 
   it("should call deleteTask when delete button is clicked", async () => {
@@ -202,7 +203,10 @@ describe("NewTaskIndicator", () => {
     expect(window.confirm).toHaveBeenCalledWith(
       "Are you sure you want to delete this task?"
     );
-    expect(mockTaskApi.deleteTask).toHaveBeenCalledWith("1");
+
+    await waitFor(() => {
+      expect(mockTaskApi.deleteTask).toHaveBeenCalledWith("1");
+    });
   });
 
   it("should not call deleteTask when user cancels confirmation", async () => {

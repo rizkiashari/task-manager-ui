@@ -3,23 +3,22 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import TaskItem from "../TaskItem";
 import { useTaskStore } from "../../store/taskStore";
+import { taskApi } from "../../services/api";
 
 // Mock the store
 jest.mock("../../store/taskStore");
 
 // Mock the API service
-jest.mock("../../services/api", () => ({
-  taskApi: {
-    toggleTask: jest.fn(),
-    deleteTask: jest.fn(),
-  },
-}));
+jest.mock("../../services/api");
 
 // Get the mocked API
 const mockTaskApi = {
   toggleTask: jest.fn(),
   deleteTask: jest.fn(),
 };
+
+(taskApi as jest.Mocked<typeof taskApi>).toggleTask = mockTaskApi.toggleTask;
+(taskApi as jest.Mocked<typeof taskApi>).deleteTask = mockTaskApi.deleteTask;
 
 const mockUseTaskStore = useTaskStore as jest.MockedFunction<
   typeof useTaskStore
