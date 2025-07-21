@@ -1,7 +1,11 @@
 import { create } from "zustand";
 import moment from "moment";
 import { Task } from "../types/task";
-import { taskApi } from "../services/api";
+import {
+  dummyTasks,
+  generateId,
+  getCurrentTimestamp,
+} from "../data/dummyTasks";
 
 interface TaskStore {
   tasks: Task[];
@@ -10,10 +14,11 @@ interface TaskStore {
   setTasks: (tasks: Task[]) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
-  addTask: (task: Task) => void;
+  addTask: (task: Omit<Task, "id" | "createdAt" | "updatedAt">) => void;
   deleteTask: (id: string) => void;
   toggleTask: (id: string) => void;
   clearError: () => void;
+  loadTasks: () => void;
 }
 
 export const useTaskStore = create<TaskStore>((set, get) => ({
@@ -25,9 +30,27 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
 
-  addTask: (task) => {
+  loadTasks: () => {
+    set({ loading: true, error: null });
+    try {
+      // Simulate API delay
+      setTimeout(() => {
+        set({ tasks: [...dummyTasks], loading: false });
+      }, 500);
+    } catch {
+      set({ error: "Failed to load tasks", loading: false });
+    }
+  },
+
+  addTask: (taskData) => {
     const { tasks } = get();
-    set({ tasks: [task, ...tasks] });
+    const newTask: Task = {
+      ...taskData,
+      id: generateId(),
+      createdAt: getCurrentTimestamp(),
+      updatedAt: getCurrentTimestamp(),
+    };
+    set({ tasks: [newTask, ...tasks] });
   },
 
   deleteTask: (id) => {
@@ -43,7 +66,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
           ? {
               ...task,
               completed: !task.completed,
-              updatedAt: moment().toISOString(),
+              updatedAt: getCurrentTimestamp(),
             }
           : task
       ),

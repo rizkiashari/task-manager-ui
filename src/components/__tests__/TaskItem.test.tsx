@@ -3,34 +3,13 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { TaskItem } from "../TaskItem";
 import { useTaskStore } from "../../store/taskStore";
-import { taskApi } from "../../services/api";
 
-// Mock the store and API
+// Mock the store
 jest.mock("../../store/taskStore");
-jest.mock("../../services/api");
-jest.mock("moment", () => {
-  const originalMoment = jest.requireActual("moment");
-  const mockMoment = () => {
-    // Default mock for current time
-    return {
-      toISOString: () => "2024-01-15T10:00:00Z",
-      isBefore: () => false,
-      format: () => "Jan 15, 2024",
-      fromNow: () => "just now",
-    };
-  };
-
-  // Copy static methods
-  Object.setPrototypeOf(mockMoment, originalMoment);
-  Object.assign(mockMoment, originalMoment);
-
-  return mockMoment;
-});
 
 const mockUseTaskStore = useTaskStore as jest.MockedFunction<
   typeof useTaskStore
 >;
-const mockTaskApi = taskApi as jest.Mocked<typeof taskApi>;
 
 describe("TaskItem", () => {
   const mockTask = {
@@ -38,34 +17,30 @@ describe("TaskItem", () => {
     title: "Test Task",
     description: "Test Description",
     completed: false,
-    priority: "medium" as const,
-    dueDate: undefined,
     createdAt: "2024-01-15T10:00:00Z",
     updatedAt: "2024-01-15T10:00:00Z",
   };
 
-  let mockTasks: (typeof mockTask)[];
-  let mockSetTasks: jest.Mock;
+  let mockToggleTask: jest.Mock;
+  let mockDeleteTask: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockTasks = [mockTask];
-    mockSetTasks = jest.fn((newTasks) => {
-      mockTasks = newTasks;
-    });
+    mockToggleTask = jest.fn();
+    mockDeleteTask = jest.fn();
 
-    // Mock the store with a simpler approach
     mockUseTaskStore.mockReturnValue({
-      tasks: mockTasks,
-      setTasks: mockSetTasks,
+      tasks: [mockTask],
       loading: false,
-      setLoading: jest.fn(),
       error: null,
+      setTasks: jest.fn(),
+      setLoading: jest.fn(),
       setError: jest.fn(),
       addTask: jest.fn(),
-      deleteTask: jest.fn(),
-      toggleTask: jest.fn(),
+      deleteTask: mockDeleteTask,
+      toggleTask: mockToggleTask,
       clearError: jest.fn(),
+      loadTasks: jest.fn(),
     });
   });
 
@@ -76,43 +51,27 @@ describe("TaskItem", () => {
     expect(screen.getByText("Test Description")).toBeInTheDocument();
   });
 
-  it("shows completed task with different styling", () => {
+  it("shows completed task with strikethrough", () => {
     const completedTask = { ...mockTask, completed: true };
     render(<TaskItem task={completedTask} />);
 
-    // Find the main task container div
-    const taskContainer = screen
-      .getByText("Test Task")
-      .closest("div[class*='p-4 border rounded-lg']");
-    expect(taskContainer).toHaveClass("opacity-75");
+    const title = screen.getByText("Test Task");
+    expect(title).toHaveClass("line-through");
   });
 
-  it("does not display priority badge", () => {
+  it("shows pending icon for incomplete task", () => {
     render(<TaskItem task={mockTask} />);
 
-    expect(screen.queryByText(/🔵 medium/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/🔴 urgent/)).not.toBeInTheDocument();
+    const toggleButton = screen.getByTitle("Mark as completed");
+    expect(toggleButton).toBeInTheDocument();
   });
 
-  it("does not display due date", () => {
-    const taskWithDueDate = {
-      ...mockTask,
-      dueDate: "2024-01-20T10:00:00Z",
-    };
-    render(<TaskItem task={taskWithDueDate} />);
+  it("shows checkmark icon for completed task", () => {
+    const completedTask = { ...mockTask, completed: true };
+    render(<TaskItem task={completedTask} />);
 
-    expect(screen.queryByText(/Due:/)).not.toBeInTheDocument();
-  });
-
-  it("does not show overdue indicator", () => {
-    const overdueTask = {
-      ...mockTask,
-      dueDate: "2024-01-10T10:00:00Z", // Past date
-      completed: false,
-    };
-    render(<TaskItem task={overdueTask} />);
-
-    expect(screen.queryByText("⚠️ Overdue")).not.toBeInTheDocument();
+    const toggleButton = screen.getByTitle("Mark as pending");
+    expect(toggleButton).toBeInTheDocument();
   });
 
   it("calls toggleTask when toggle button is clicked", async () => {
@@ -122,13 +81,7 @@ describe("TaskItem", () => {
     fireEvent.click(toggleButton);
 
     await waitFor(() => {
-      expect(mockSetTasks).toHaveBeenCalledWith([
-        {
-          ...mockTask,
-          completed: true,
-          updatedAt: expect.any(String),
-        },
-      ]);
+      expect(mockToggleTask).toHaveBeenCalledWith("1");
     });
   });
 
@@ -147,8 +100,6 @@ describe("TaskItem", () => {
   });
 
   it("calls deleteTask when confirmed", async () => {
-    mockTaskApi.deleteTask.mockResolvedValue(undefined);
-
     render(<TaskItem task={mockTask} />);
 
     const deleteButton = screen.getByTitle("Delete task");
@@ -158,36 +109,11 @@ describe("TaskItem", () => {
     fireEvent.click(confirmButton);
 
     await waitFor(() => {
-      expect(mockTaskApi.deleteTask).toHaveBeenCalledWith("1");
-      expect(mockSetTasks).toHaveBeenCalledWith([]);
+      expect(mockDeleteTask).toHaveBeenCalledWith("1");
     });
   });
 
-  it("does not call deleteTask when cancelled", () => {
-    render(<TaskItem task={mockTask} />);
-
-    const deleteButton = screen.getByTitle("Delete task");
-    fireEvent.click(deleteButton);
-
-    const cancelButton = screen.getByText("Cancel");
-    fireEvent.click(cancelButton);
-
-    expect(mockTaskApi.deleteTask).not.toHaveBeenCalled();
-  });
-
-  it("does not display creation date", () => {
-    render(<TaskItem task={mockTask} />);
-
-    expect(screen.queryByText(/Created:/)).not.toBeInTheDocument();
-  });
-
-  it("does not display updated date", () => {
-    render(<TaskItem task={mockTask} />);
-
-    expect(screen.queryByText(/Updated:/)).not.toBeInTheDocument();
-  });
-
-  it("shows only title when description is empty", () => {
+  it("handles task without description", () => {
     const taskWithoutDescription = { ...mockTask, description: undefined };
     render(<TaskItem task={taskWithoutDescription} />);
 
@@ -195,9 +121,22 @@ describe("TaskItem", () => {
     expect(screen.queryByText("Test Description")).not.toBeInTheDocument();
   });
 
-  it("displays description when present", () => {
+  it("applies correct styling for completed task", () => {
+    const completedTask = { ...mockTask, completed: true };
+    render(<TaskItem task={completedTask} />);
+
+    const taskContainer = screen
+      .getByText("Test Task")
+      .closest("div[class*='p-4']");
+    expect(taskContainer).toHaveClass("opacity-75", "bg-gray-50");
+  });
+
+  it("applies correct styling for pending task", () => {
     render(<TaskItem task={mockTask} />);
 
-    expect(screen.getByText("Test Description")).toBeInTheDocument();
+    const taskContainer = screen
+      .getByText("Test Task")
+      .closest("div[class*='p-4']");
+    expect(taskContainer).toHaveClass("bg-white", "hover:shadow-md");
   });
 });

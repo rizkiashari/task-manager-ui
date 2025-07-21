@@ -1,17 +1,19 @@
-import axios from "axios";
 import { Task, CreateTaskRequest } from "../types/task";
+import {
+  dummyTasks,
+  generateId,
+  getCurrentTimestamp,
+} from "../data/dummyTasks";
 
-// Create axios instance for Next.js API routes
-const api = axios.create({
-  baseURL: "/api",
-});
+// Simulate API delay
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const taskApi = {
   // Get all tasks
   async getTasks(): Promise<Task[]> {
     try {
-      const response = await api.get("/tasks");
-      return response.data;
+      await delay(500); // Simulate network delay
+      return [...dummyTasks];
     } catch (error) {
       console.error("Error fetching tasks:", error);
       throw new Error("Failed to fetch tasks");
@@ -21,15 +23,15 @@ export const taskApi = {
   // Create a new task
   async createTask(taskData: CreateTaskRequest): Promise<Task> {
     try {
-      const newTask = {
+      await delay(300); // Simulate network delay
+      const newTask: Task = {
         ...taskData,
+        id: generateId(),
         completed: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: getCurrentTimestamp(),
+        updatedAt: getCurrentTimestamp(),
       };
-
-      const response = await api.post("/tasks", newTask);
-      return response.data;
+      return newTask;
     } catch (error) {
       console.error("Error creating task:", error);
       throw new Error("Failed to create task");
@@ -39,7 +41,10 @@ export const taskApi = {
   // Delete a task
   async deleteTask(taskId: string): Promise<void> {
     try {
-      await api.delete(`/tasks/${taskId}`);
+      await delay(200); // Simulate network delay
+      // In dummy mode, we don't actually delete from the dummy data
+      // The store will handle the deletion
+      return;
     } catch (error) {
       console.error("Error deleting task:", error);
       throw new Error("Failed to delete task");
@@ -49,8 +54,12 @@ export const taskApi = {
   // Get a single task (helper method)
   async getTask(taskId: string): Promise<Task> {
     try {
-      const response = await api.get(`/tasks/${taskId}`);
-      return response.data;
+      await delay(200); // Simulate network delay
+      const task = dummyTasks.find((t) => t.id === taskId);
+      if (!task) {
+        throw new Error("Task not found");
+      }
+      return task;
     } catch (error) {
       console.error("Error fetching task:", error);
       throw new Error("Failed to fetch task");

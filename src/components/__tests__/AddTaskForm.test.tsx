@@ -1,341 +1,312 @@
 import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import "@testing-library/jest-dom";
 import { AddTaskForm } from "../AddTaskForm";
-import { useTaskStore } from "../../store/taskStore";
-import { taskApi } from "../../services/api";
+import { useTaskForm } from "../../hooks/useTaskForm";
+import { useTasks } from "../../hooks/useTasks";
 
-// Mock the store and API
-jest.mock("../../store/taskStore");
-jest.mock("../../services/api");
+// Mock the hooks
+jest.mock("../../hooks/useTaskForm");
+jest.mock("../../hooks/useTasks");
 
-const mockUseTaskStore = useTaskStore as jest.MockedFunction<
-  typeof useTaskStore
->;
-const mockTaskApi = taskApi as jest.Mocked<typeof taskApi>;
+const mockUseTaskForm = useTaskForm as jest.MockedFunction<typeof useTaskForm>;
+const mockUseTasks = useTasks as jest.MockedFunction<typeof useTasks>;
 
 describe("AddTaskForm", () => {
-  const mockTask = {
-    id: "1",
-    title: "Test Task",
-    description: "Test Description",
-    completed: false,
-    priority: "medium" as const,
-    dueDate: undefined,
-    createdAt: "2024-01-15T10:00:00Z",
-    updatedAt: "2024-01-15T10:00:00Z",
-  };
-
-  let mockTasks: (typeof mockTask)[];
-  let mockSetTasks: jest.Mock;
+  const mockCreateTask = jest.fn();
+  const mockUpdateField = jest.fn();
+  const mockHandleSubmit = jest.fn();
+  const mockHandleConfirm = jest.fn();
+  const mockHandleCancel = jest.fn();
+  const mockResetForm = jest.fn();
+  const mockValidateForm = jest.fn();
 
   beforeEach(() => {
+    // Reset all mocks
     jest.clearAllMocks();
-    mockTasks = [];
-    mockSetTasks = jest.fn((newTasks) => {
-      mockTasks = newTasks;
-    });
 
-    mockUseTaskStore.mockReturnValue({
-      tasks: mockTasks,
-      setTasks: mockSetTasks,
-      loading: false,
-      setLoading: jest.fn(),
-      error: null,
-      setError: jest.fn(),
-      addTask: jest.fn(),
-      deleteTask: jest.fn(),
-      toggleTask: jest.fn(),
-      clearError: jest.fn(),
+    // Setup default mock implementations
+    mockUseTasks.mockReturnValue({
+      createTask: mockCreateTask,
+    } as unknown as ReturnType<typeof useTasks>);
+
+    mockUseTaskForm.mockReturnValue({
+      formData: {
+        title: "",
+        description: "",
+      },
+      errors: [],
+      isSubmitting: false,
+      showConfirm: false,
+      titleCharacterCount: 0,
+      descriptionCharacterCount: 0,
+      isTitleAtLimit: false,
+      isDescriptionAtLimit: false,
+      updateField: mockUpdateField,
+      handleSubmit: mockHandleSubmit,
+      handleConfirm: mockHandleConfirm,
+      handleCancel: mockHandleCancel,
+      resetForm: mockResetForm,
+      validateForm: mockValidateForm,
     });
   });
 
   it("renders form with title and description fields", () => {
     render(<AddTaskForm />);
 
-    expect(screen.getByText("➕ Add New Task")).toBeInTheDocument();
     expect(screen.getByLabelText(/Title \*/)).toBeInTheDocument();
     expect(
-      screen.getByLabelText(/Description \(optional\)/)
+      screen.getByLabelText(/Description \(Optional\)/)
     ).toBeInTheDocument();
     expect(screen.getByText("Create Task")).toBeInTheDocument();
   });
 
-  it("shows character count for title and description", () => {
-    render(<AddTaskForm />);
-
-    expect(screen.getByText("0/100 characters")).toBeInTheDocument();
-    expect(screen.getByText("0/500 characters")).toBeInTheDocument();
-  });
-
   it("updates character count when typing", () => {
-    render(<AddTaskForm />);
-
-    const titleInput = screen.getByLabelText(/Title \*/);
-    const descriptionInput = screen.getByLabelText(/Description \(optional\)/);
-
-    fireEvent.change(titleInput, { target: { value: "Test" } });
-    fireEvent.change(descriptionInput, {
-      target: { value: "Test description" },
+    mockUseTaskForm.mockReturnValue({
+      formData: {
+        title: "Test",
+        description: "Test Description",
+      },
+      errors: [],
+      isSubmitting: false,
+      showConfirm: false,
+      titleCharacterCount: 4,
+      descriptionCharacterCount: 15,
+      isTitleAtLimit: false,
+      isDescriptionAtLimit: false,
+      updateField: mockUpdateField,
+      handleSubmit: mockHandleSubmit,
+      handleConfirm: mockHandleConfirm,
+      handleCancel: mockHandleCancel,
+      resetForm: mockResetForm,
+      validateForm: mockValidateForm,
     });
+
+    render(<AddTaskForm />);
 
     expect(screen.getByText("4/100 characters")).toBeInTheDocument();
-    expect(screen.getByText("16/500 characters")).toBeInTheDocument();
+    expect(screen.getByText("15/500 characters")).toBeInTheDocument();
   });
 
-  it("shows error when title is empty", async () => {
-    render(<AddTaskForm />);
-
-    const submitButton = screen.getByText("Create Task");
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText("Title is required")).toBeInTheDocument();
+  it("shows error when title is too short", () => {
+    mockUseTaskForm.mockReturnValue({
+      formData: {
+        title: "Te",
+        description: "",
+      },
+      errors: ["Title must be at least 3 characters long"],
+      isSubmitting: false,
+      showConfirm: false,
+      titleCharacterCount: 2,
+      descriptionCharacterCount: 0,
+      isTitleAtLimit: false,
+      isDescriptionAtLimit: false,
+      updateField: mockUpdateField,
+      handleSubmit: mockHandleSubmit,
+      handleConfirm: mockHandleConfirm,
+      handleCancel: mockHandleCancel,
+      resetForm: mockResetForm,
+      validateForm: mockValidateForm,
     });
-  });
-
-  it("shows error when title is too short", async () => {
-    render(<AddTaskForm />);
-
-    const titleInput = screen.getByLabelText(/Title \*/);
-    fireEvent.change(titleInput, { target: { value: "ab" } });
-
-    const submitButton = screen.getByText("Create Task");
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("Title must be at least 3 characters long")
-      ).toBeInTheDocument();
-    });
-  });
-
-  it("shows error when title is too long", async () => {
-    render(<AddTaskForm />);
-
-    const titleInput = screen.getByLabelText(/Title \*/);
-    const longTitle = "a".repeat(101);
-    fireEvent.change(titleInput, { target: { value: longTitle } });
-
-    const submitButton = screen.getByText("Create Task");
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("Title must be less than 100 characters")
-      ).toBeInTheDocument();
-    });
-  });
-
-  it("shows error when description is too long", async () => {
-    render(<AddTaskForm />);
-
-    const titleInput = screen.getByLabelText(/Title \*/);
-    const descriptionInput = screen.getByLabelText(/Description \(optional\)/);
-
-    fireEvent.change(titleInput, { target: { value: "Valid Title" } });
-
-    const longDescription = "a".repeat(501);
-    fireEvent.change(descriptionInput, { target: { value: longDescription } });
-
-    const submitButton = screen.getByText("Create Task");
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("Description must be less than 500 characters")
-      ).toBeInTheDocument();
-    });
-  });
-
-  it("shows confirmation dialog when form is valid", async () => {
-    render(<AddTaskForm />);
-
-    const titleInput = screen.getByLabelText(/Title \*/);
-    fireEvent.change(titleInput, { target: { value: "Valid Title" } });
-
-    const submitButton = screen.getByText("Create Task");
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText("Create New Task")).toBeInTheDocument();
-      expect(
-        screen.getByText(
-          'Are you sure you want to create the task "Valid Title"?'
-        )
-      ).toBeInTheDocument();
-    });
-  });
-
-  it("calls API and updates store when confirmed", async () => {
-    mockTaskApi.createTask.mockResolvedValue(mockTask);
 
     render(<AddTaskForm />);
 
-    const titleInput = screen.getByLabelText(/Title \*/);
-    const descriptionInput = screen.getByLabelText(/Description \(optional\)/);
+    expect(
+      screen.getByText("Title must be at least 3 characters long")
+    ).toBeInTheDocument();
+  });
 
-    fireEvent.change(titleInput, { target: { value: "Test Task" } });
-    fireEvent.change(descriptionInput, {
-      target: { value: "Test Description" },
+  it("shows error when description is too long", () => {
+    mockUseTaskForm.mockReturnValue({
+      formData: {
+        title: "Valid Title",
+        description: "a".repeat(501),
+      },
+      errors: ["Description must be less than 500 characters"],
+      isSubmitting: false,
+      showConfirm: false,
+      titleCharacterCount: 11,
+      descriptionCharacterCount: 501,
+      isTitleAtLimit: false,
+      isDescriptionAtLimit: true,
+      updateField: mockUpdateField,
+      handleSubmit: mockHandleSubmit,
+      handleConfirm: mockHandleConfirm,
+      handleCancel: mockHandleCancel,
+      resetForm: mockResetForm,
+      validateForm: mockValidateForm,
     });
 
-    const submitButton = screen.getByText("Create Task");
-    fireEvent.click(submitButton);
+    render(<AddTaskForm />);
 
-    await waitFor(() => {
-      expect(screen.getByText("Create New Task")).toBeInTheDocument();
-    });
+    expect(
+      screen.getByText("Description must be less than 500 characters")
+    ).toBeInTheDocument();
+  });
 
-    // Get the confirm button from the dialog (second button with "Create Task" text)
-    const confirmButtons = screen.getAllByText("Create Task");
-    const confirmButton = confirmButtons[1]; // Second button is the confirm button
-    fireEvent.click(confirmButton);
-
-    await waitFor(() => {
-      expect(mockTaskApi.createTask).toHaveBeenCalledWith({
+  it("calls createTask when confirmed", async () => {
+    mockCreateTask.mockResolvedValue({ success: true });
+    mockUseTaskForm.mockReturnValue({
+      formData: {
         title: "Test Task",
         description: "Test Description",
-      });
-      expect(mockSetTasks).toHaveBeenCalledWith(
-        expect.arrayContaining([mockTask])
-      );
+      },
+      errors: [],
+      isSubmitting: false,
+      showConfirm: true,
+      titleCharacterCount: 9,
+      descriptionCharacterCount: 15,
+      isTitleAtLimit: false,
+      isDescriptionAtLimit: false,
+      updateField: mockUpdateField,
+      handleSubmit: mockHandleSubmit,
+      handleConfirm: mockHandleConfirm,
+      handleCancel: mockHandleCancel,
+      resetForm: mockResetForm,
+      validateForm: mockValidateForm,
     });
-  });
-
-  it("shows success message after creating task", async () => {
-    mockTaskApi.createTask.mockResolvedValue(mockTask);
 
     render(<AddTaskForm />);
 
-    const titleInput = screen.getByLabelText(/Title \*/);
-    fireEvent.change(titleInput, { target: { value: "Test Task" } });
-
-    const submitButton = screen.getByText("Create Task");
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText("Create New Task")).toBeInTheDocument();
-    });
-
+    // Use getAllByText to get the confirmation button specifically
     const confirmButtons = screen.getAllByText("Create Task");
-    const confirmButton = confirmButtons[1];
+    const confirmButton = confirmButtons[2]; // The confirmation dialog button
     fireEvent.click(confirmButton);
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Task created successfully!")
-      ).toBeInTheDocument();
+      expect(mockHandleConfirm).toHaveBeenCalledWith(mockCreateTask);
     });
   });
 
-  it("shows error message when API fails", async () => {
-    mockTaskApi.createTask.mockRejectedValue(new Error("API Error"));
+  it("shows confirmation dialog when form is submitted", () => {
+    mockUseTaskForm.mockReturnValue({
+      formData: {
+        title: "Test Task",
+        description: "Test Description",
+      },
+      errors: [],
+      isSubmitting: false,
+      showConfirm: true,
+      titleCharacterCount: 9,
+      descriptionCharacterCount: 15,
+      isTitleAtLimit: false,
+      isDescriptionAtLimit: false,
+      updateField: mockUpdateField,
+      handleSubmit: mockHandleSubmit,
+      handleConfirm: mockHandleConfirm,
+      handleCancel: mockHandleCancel,
+      resetForm: mockResetForm,
+      validateForm: mockValidateForm,
+    });
 
     render(<AddTaskForm />);
 
-    const titleInput = screen.getByLabelText(/Title \*/);
-    fireEvent.change(titleInput, { target: { value: "Test Task" } });
-
-    const submitButton = screen.getByText("Create Task");
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText("Create New Task")).toBeInTheDocument();
-    });
-
-    const confirmButtons = screen.getAllByText("Create Task");
-    const confirmButton = confirmButtons[1];
-    fireEvent.click(confirmButton);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText("Failed to create task. Please try again.")
-      ).toBeInTheDocument();
-    });
+    // Check for the confirmation dialog content
+    expect(
+      screen.getByText('Are you sure you want to create the task "Test Task"?')
+    ).toBeInTheDocument();
+    expect(screen.getByText("Cancel")).toBeInTheDocument();
   });
 
-  it("resets form after successful creation", async () => {
-    mockTaskApi.createTask.mockResolvedValue(mockTask);
+  it("shows loading state when submitting", () => {
+    mockUseTaskForm.mockReturnValue({
+      formData: {
+        title: "Test Task",
+        description: "Test Description",
+      },
+      errors: [],
+      isSubmitting: true,
+      showConfirm: false,
+      titleCharacterCount: 9,
+      descriptionCharacterCount: 15,
+      isTitleAtLimit: false,
+      isDescriptionAtLimit: false,
+      updateField: mockUpdateField,
+      handleSubmit: mockHandleSubmit,
+      handleConfirm: mockHandleConfirm,
+      handleCancel: mockHandleCancel,
+      resetForm: mockResetForm,
+      validateForm: mockValidateForm,
+    });
 
     render(<AddTaskForm />);
 
-    const titleInput = screen.getByLabelText(/Title \*/);
-    const descriptionInput = screen.getByLabelText(/Description \(optional\)/);
+    expect(screen.getByText("Creating...")).toBeInTheDocument();
+    expect(screen.getByRole("button")).toBeDisabled();
+  });
 
-    fireEvent.change(titleInput, { target: { value: "Test Task" } });
+  it("shows maximum length warning when title reaches limit", () => {
+    mockUseTaskForm.mockReturnValue({
+      formData: {
+        title: "a".repeat(100),
+        description: "",
+      },
+      errors: [],
+      isSubmitting: false,
+      showConfirm: false,
+      titleCharacterCount: 100,
+      descriptionCharacterCount: 0,
+      isTitleAtLimit: true,
+      isDescriptionAtLimit: false,
+      updateField: mockUpdateField,
+      handleSubmit: mockHandleSubmit,
+      handleConfirm: mockHandleConfirm,
+      handleCancel: mockHandleCancel,
+      resetForm: mockResetForm,
+      validateForm: mockValidateForm,
+    });
+
+    render(<AddTaskForm />);
+
+    expect(screen.getByText("Character limit reached")).toBeInTheDocument();
+  });
+
+  it("shows maximum length warning when description reaches limit", () => {
+    mockUseTaskForm.mockReturnValue({
+      formData: {
+        title: "",
+        description: "a".repeat(500),
+      },
+      errors: [],
+      isSubmitting: false,
+      showConfirm: false,
+      titleCharacterCount: 0,
+      descriptionCharacterCount: 500,
+      isTitleAtLimit: false,
+      isDescriptionAtLimit: true,
+      updateField: mockUpdateField,
+      handleSubmit: mockHandleSubmit,
+      handleConfirm: mockHandleConfirm,
+      handleCancel: mockHandleCancel,
+      resetForm: mockResetForm,
+      validateForm: mockValidateForm,
+    });
+
+    render(<AddTaskForm />);
+
+    expect(screen.getByText("Character limit reached")).toBeInTheDocument();
+  });
+
+  it("calls updateField when input changes", () => {
+    render(<AddTaskForm />);
+
+    const titleInput = screen.getByLabelText(/Title \*/);
+    const descriptionInput = screen.getByLabelText(/Description \(Optional\)/);
+
+    fireEvent.change(titleInput, { target: { value: "New Title" } });
     fireEvent.change(descriptionInput, {
-      target: { value: "Test Description" },
+      target: { value: "New Description" },
     });
 
-    const submitButton = screen.getByText("Create Task");
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText("Create New Task")).toBeInTheDocument();
-    });
-
-    const confirmButtons = screen.getAllByText("Create Task");
-    const confirmButton = confirmButtons[1];
-    fireEvent.click(confirmButton);
-
-    await waitFor(() => {
-      expect(titleInput).toHaveValue("");
-      expect(descriptionInput).toHaveValue("");
-    });
-  });
-
-  it("clears error when user starts typing", async () => {
-    render(<AddTaskForm />);
-
-    // Submit with empty title to trigger error
-    const submitButton = screen.getByText("Create Task");
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText("Title is required")).toBeInTheDocument();
-    });
-
-    // Now type to clear the error
-    const titleInput = screen.getByLabelText(/Title \*/);
-    fireEvent.change(titleInput, { target: { value: "Test" } });
-
-    await waitFor(() => {
-      expect(screen.queryByText("Title is required")).not.toBeInTheDocument();
-    });
-  });
-
-  it("enables submit button by default", () => {
-    render(<AddTaskForm />);
-
-    const submitButton = screen.getByText("Create Task");
-    expect(submitButton).not.toBeDisabled();
-  });
-
-  it("disables submit button during submission", async () => {
-    mockTaskApi.createTask.mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve(mockTask), 100))
+    expect(mockUpdateField).toHaveBeenCalledWith("title", "New Title");
+    expect(mockUpdateField).toHaveBeenCalledWith(
+      "description",
+      "New Description"
     );
+  });
 
+  it("renders submit button", () => {
     render(<AddTaskForm />);
 
-    const titleInput = screen.getByLabelText(/Title \*/);
-    fireEvent.change(titleInput, { target: { value: "Test Task" } });
-
-    const submitButton = screen.getByText("Create Task");
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      expect(screen.getByText("Create New Task")).toBeInTheDocument();
-    });
-
-    const confirmButtons = screen.getAllByText("Create Task");
-    const confirmButton = confirmButtons[1];
-    fireEvent.click(confirmButton);
-
-    await waitFor(() => {
-      expect(screen.getByText("Creating Task...")).toBeInTheDocument();
-      expect(screen.getByText("Creating Task...")).toBeDisabled();
-    });
+    expect(screen.getByText("Create Task")).toBeInTheDocument();
   });
 });

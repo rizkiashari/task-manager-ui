@@ -2,6 +2,14 @@ import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { PDFReport } from "../PDFReport";
+import { usePDFReport } from "../../hooks/usePDFReport";
+
+// Mock the hook
+jest.mock("../../hooks/usePDFReport");
+
+const mockUsePDFReport = usePDFReport as jest.MockedFunction<
+  typeof usePDFReport
+>;
 
 // Mock jsPDF and jspdf-autotable
 jest.mock("jspdf", () => {
@@ -24,25 +32,6 @@ jest.mock("jspdf", () => {
 });
 
 jest.mock("jspdf-autotable", () => jest.fn());
-
-jest.mock("moment", () => {
-  const originalMoment = jest.requireActual("moment");
-  const mockMoment = (date?: string | Date) => {
-    if (date === "2024-01-15T10:00:00Z") {
-      return {
-        format: () => "Jan 15, 2024",
-      };
-    }
-    return {
-      format: () => "Jan 15, 2024",
-    };
-  };
-
-  Object.setPrototypeOf(mockMoment, originalMoment);
-  Object.assign(mockMoment, originalMoment);
-
-  return mockMoment;
-});
 
 describe("PDFReport", () => {
   const mockTasks = [
@@ -68,149 +57,182 @@ describe("PDFReport", () => {
     },
   ];
 
-  const mockOnGenerate = jest.fn();
+  const mockGeneratePDF = jest.fn();
+  const mockUpdateOptions = jest.fn();
+  const mockResetOptions = jest.fn();
+  const mockCanGenerateReport = jest.fn();
+  const mockCalculateStatistics = jest.fn();
+  const mockSortTasksForReport = jest.fn();
+  const mockFormatTaskForReport = jest.fn();
+  const mockGetReportFilename = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+
+    // Setup default mock implementation
+    mockUsePDFReport.mockReturnValue({
+      isGenerating: false,
+      options: {
+        includeStatistics: true,
+        includeTaskList: true,
+        includeTimestamps: true,
+        sortBy: "created",
+      },
+      generatePDF: mockGeneratePDF,
+      updateOptions: mockUpdateOptions,
+      resetOptions: mockResetOptions,
+      canGenerateReport: mockCanGenerateReport,
+      calculateStatistics: mockCalculateStatistics,
+      sortTasksForReport: mockSortTasksForReport,
+      formatTaskForReport: mockFormatTaskForReport,
+      getReportFilename: mockGetReportFilename,
+    });
   });
 
   it("renders PDF report component", () => {
-    render(
-      <PDFReport
-        tasks={mockTasks}
-        onGenerate={mockOnGenerate}
-        isGenerating={false}
-      />
-    );
+    mockCanGenerateReport.mockReturnValue(true);
+
+    render(<PDFReport tasks={mockTasks} />);
 
     expect(screen.getByText("📊 PDF Report")).toBeInTheDocument();
-    expect(
-      screen.getByText("Generate a comprehensive PDF report of all tasks")
-    ).toBeInTheDocument();
-    expect(screen.getByText("Download PDF Report")).toBeInTheDocument();
+    expect(screen.getByText("Generate PDF Report")).toBeInTheDocument();
   });
 
-  it("displays task statistics", () => {
-    render(
-      <PDFReport
-        tasks={mockTasks}
-        onGenerate={mockOnGenerate}
-        isGenerating={false}
-      />
-    );
+  it("displays task count information", () => {
+    mockCanGenerateReport.mockReturnValue(true);
 
-    expect(screen.getByText(/Total Tasks:/)).toBeInTheDocument();
-    expect(screen.getByText("2")).toBeInTheDocument();
-    expect(screen.getByText(/Completed:/)).toBeInTheDocument();
-    expect(screen.getByText("1")).toBeInTheDocument();
+    render(<PDFReport tasks={mockTasks} />);
+
+    expect(screen.getByText("Report will include 2 tasks")).toBeInTheDocument();
   });
 
   it("handles empty task list gracefully", () => {
-    render(
-      <PDFReport tasks={[]} onGenerate={mockOnGenerate} isGenerating={false} />
-    );
+    mockCanGenerateReport.mockReturnValue(false);
 
-    expect(screen.getByText(/Total Tasks:/)).toBeInTheDocument();
-    expect(screen.getAllByText("0")).toHaveLength(2);
-    expect(screen.getByText(/Completed:/)).toBeInTheDocument();
-    // Remove this line since there are multiple "0" elements
-    // expect(screen.getByText("0")).toBeInTheDocument();
+    render(<PDFReport tasks={[]} />);
+
+    expect(
+      screen.getByText("No tasks available for report")
+    ).toBeInTheDocument();
   });
 
   it("shows loading state when generating", () => {
-    render(
-      <PDFReport
-        tasks={mockTasks}
-        onGenerate={mockOnGenerate}
-        isGenerating={true}
-      />
-    );
+    mockUsePDFReport.mockReturnValue({
+      isGenerating: true,
+      options: {
+        includeStatistics: true,
+        includeTaskList: true,
+        includeTimestamps: true,
+        sortBy: "created",
+      },
+      generatePDF: mockGeneratePDF,
+      updateOptions: mockUpdateOptions,
+      resetOptions: mockResetOptions,
+      canGenerateReport: mockCanGenerateReport,
+      calculateStatistics: mockCalculateStatistics,
+      sortTasksForReport: mockSortTasksForReport,
+      formatTaskForReport: mockFormatTaskForReport,
+      getReportFilename: mockGetReportFilename,
+    });
+    mockCanGenerateReport.mockReturnValue(false);
+
+    render(<PDFReport tasks={mockTasks} />);
 
     expect(screen.getByText("Generating PDF...")).toBeInTheDocument();
-    expect(screen.queryByText("Download PDF Report")).not.toBeInTheDocument();
+    expect(screen.queryByText("Generate PDF Report")).not.toBeInTheDocument();
   });
 
   it("disables button when generating", () => {
-    render(
-      <PDFReport
-        tasks={mockTasks}
-        onGenerate={mockOnGenerate}
-        isGenerating={true}
-      />
-    );
+    mockUsePDFReport.mockReturnValue({
+      isGenerating: true,
+      options: {
+        includeStatistics: true,
+        includeTaskList: true,
+        includeTimestamps: true,
+        sortBy: "created",
+      },
+      generatePDF: mockGeneratePDF,
+      updateOptions: mockUpdateOptions,
+      resetOptions: mockResetOptions,
+      canGenerateReport: mockCanGenerateReport,
+      calculateStatistics: mockCalculateStatistics,
+      sortTasksForReport: mockSortTasksForReport,
+      formatTaskForReport: mockFormatTaskForReport,
+      getReportFilename: mockGetReportFilename,
+    });
+    mockCanGenerateReport.mockReturnValue(false);
+
+    render(<PDFReport tasks={mockTasks} />);
 
     const button = screen.getByText("Generating PDF...");
     expect(button).toBeDisabled();
   });
 
   it("disables button when no tasks available", () => {
-    render(
-      <PDFReport tasks={[]} onGenerate={mockOnGenerate} isGenerating={false} />
-    );
+    mockCanGenerateReport.mockReturnValue(false);
 
-    const button = screen.getByText("Download PDF Report");
+    render(<PDFReport tasks={[]} />);
+
+    const button = screen.getByText("Generate PDF Report");
     expect(button).toBeDisabled();
   });
 
-  it("calls onGenerate when button is clicked", async () => {
-    render(
-      <PDFReport
-        tasks={mockTasks}
-        onGenerate={mockOnGenerate}
-        isGenerating={false}
-      />
-    );
+  it("calls generatePDF when button is clicked", async () => {
+    mockCanGenerateReport.mockReturnValue(true);
+    mockGeneratePDF.mockResolvedValue({ success: true });
 
-    const button = screen.getByText("Download PDF Report");
+    render(<PDFReport tasks={mockTasks} />);
+
+    const button = screen.getByText("Generate PDF Report");
     fireEvent.click(button);
 
     await waitFor(() => {
-      expect(mockOnGenerate).toHaveBeenCalled();
+      expect(mockGeneratePDF).toHaveBeenCalledWith(mockTasks);
     });
   });
 
   it("shows message when no tasks available", () => {
-    render(
-      <PDFReport tasks={[]} onGenerate={mockOnGenerate} isGenerating={false} />
-    );
+    mockCanGenerateReport.mockReturnValue(false);
+
+    render(<PDFReport tasks={[]} />);
 
     expect(
-      screen.getByText("No tasks available to generate report")
+      screen.getByText("No tasks available for report")
     ).toBeInTheDocument();
   });
 
-  it("displays report features list", () => {
-    render(
-      <PDFReport
-        tasks={mockTasks}
-        onGenerate={mockOnGenerate}
-        isGenerating={false}
-      />
-    );
+  it("displays report options", () => {
+    mockCanGenerateReport.mockReturnValue(true);
 
-    expect(screen.getByText("📋 Report includes:")).toBeInTheDocument();
-    expect(screen.getByText("Task summary and statistics")).toBeInTheDocument();
-    expect(
-      screen.getByText("Complete task list with title and description")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Task status (completed/pending)")
-    ).toBeInTheDocument();
-    expect(screen.getByText("Creation dates")).toBeInTheDocument();
+    render(<PDFReport tasks={mockTasks} />);
+
+    expect(screen.getByText("Include Statistics")).toBeInTheDocument();
+    expect(screen.getByText("Include Task List")).toBeInTheDocument();
+    expect(screen.getByText("Include Timestamps")).toBeInTheDocument();
+    expect(screen.getByText("Sort By")).toBeInTheDocument();
   });
 
-  it("does not display priority-related features", () => {
-    render(
-      <PDFReport
-        tasks={mockTasks}
-        onGenerate={mockOnGenerate}
-        isGenerating={false}
-      />
-    );
+  it("calls updateOptions when checkbox is changed", () => {
+    mockCanGenerateReport.mockReturnValue(true);
 
-    expect(screen.queryByText("Priority breakdown")).not.toBeInTheDocument();
-    expect(
-      screen.queryByText("Creation and due dates")
-    ).not.toBeInTheDocument();
+    render(<PDFReport tasks={mockTasks} />);
+
+    const statisticsCheckbox = screen.getByLabelText("Include Statistics");
+    fireEvent.click(statisticsCheckbox);
+
+    expect(mockUpdateOptions).toHaveBeenCalledWith({
+      includeStatistics: false,
+    });
+  });
+
+  it("calls resetOptions when reset button is clicked", () => {
+    mockCanGenerateReport.mockReturnValue(true);
+
+    render(<PDFReport tasks={mockTasks} />);
+
+    const resetButton = screen.getByText("Reset Options");
+    fireEvent.click(resetButton);
+
+    expect(mockResetOptions).toHaveBeenCalled();
   });
 });
