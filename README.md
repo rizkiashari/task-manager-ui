@@ -1,36 +1,204 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Task Management Dashboard
+
+A modern task management application built with React.js, TypeScript, and Next.js. This application provides a comprehensive interface for managing tasks with features like creating, viewing, toggling completion status, deleting tasks, and generating PDF reports.
+
+## Features
+
+### ✅ Core Functionality
+
+- **View and Manage Tasks**: Display all tasks with their titles, descriptions, and completion status
+- **Create Tasks**: Add new tasks with title (required) and description (optional)
+- **Toggle Completion**: Mark tasks as complete/incomplete with visual indicators
+- **Delete Tasks**: Remove tasks with confirmation dialog
+- **PDF Report Generation**: Download comprehensive PDF reports of all tasks
+
+### 🎨 User Experience
+
+- **Modern UI**: Clean, responsive design using Tailwind CSS
+- **Visual Feedback**: Completed tasks are visually distinguished with green styling and strikethrough
+- **Loading States**: Smooth loading indicators for all async operations
+- **Error Handling**: Comprehensive error messages and user feedback
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+
+### 🛠 Technical Features
+
+- **TypeScript**: Full type safety throughout the application
+- **State Management**: Zustand for efficient state management
+- **API Integration**: Mock API service ready for FastAPI backend integration
+- **Testing**: React Testing Library for component testing
+- **PDF Generation**: jsPDF for creating downloadable task reports
+
+## Tech Stack
+
+- **Frontend**: React.js + TypeScript + Next.js 15
+- **Styling**: Tailwind CSS
+- **State Management**: Zustand
+- **API Client**: Axios (with mock implementation)
+- **PDF Generation**: jsPDF
+- **Testing**: React Testing Library + Jest
+- **Build Tool**: Next.js with Turbopack
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+### Installation
+
+Clone the repository:
+
+```bash
+git clone <repository-url>
+cd test-interview
+```
+
+1. Install dependencies:
+
+```bash
+npm install
+```
+
+2. Run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+3. Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Available Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- `npm run dev` - Start development server with Turbopack
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests
+- `npm run test:watch` - Run tests in watch mode
+- `npm run server` - Start JSON Server (mock API) on port 3001
+- `npm run dev:full` - Start both Next.js dev server and JSON Server
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+src/
+├── app/                    # Next.js app directory
+│   ├── layout.tsx         # Root layout
+│   ├── page.tsx           # Main dashboard page
+│   └── globals.css        # Global styles
+├── components/            # React components
+│   ├── TaskList.tsx       # Task list component
+│   ├── TaskItem.tsx       # Individual task component
+│   ├── CreateTaskForm.tsx # Task creation form
+│   ├── PDFReport.tsx      # PDF report generation
+│   └── __tests__/         # Test files
+├── store/                 # State management
+│   └── taskStore.ts       # Zustand store
+├── services/              # API services
+│   └── api.ts            # Task API service
+└── types/                 # TypeScript types
+    └── task.ts           # Task-related types
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## API Integration
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### JSON Server (Mock API)
 
-## Deploy on Vercel
+The application uses JSON Server to provide a realistic API experience with Axios:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. **Start JSON Server**: `npm run server` (runs on <http://localhost:3001>)
+2. **Start both servers**: `npm run dev:full` (Next.js + JSON Server)
+3. **API Endpoints**:
+   - `GET http://localhost:3001/tasks` - Get all tasks
+   - `POST http://localhost:3001/tasks` - Create a new task
+   - `PUT http://localhost:3001/tasks/{id}` - Update a task
+   - `DELETE http://localhost:3001/tasks/{id}` - Delete a task
+   - `GET http://localhost:3001/tasks/{id}` - Get specific task
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### FastAPI Integration
+
+To integrate with a real FastAPI backend:
+
+1. Update the `API_BASE_URL` in `src/services/api.ts`
+2. Ensure your FastAPI backend provides the following endpoints:
+   - `GET /tasks` - Get all tasks
+   - `POST /tasks` - Create a new task
+   - `PUT /tasks/{id}` - Update a task
+   - `DELETE /tasks/{id}` - Delete a task
+   - `GET /tasks/{id}` - Get specific task
+
+## Testing
+
+The project includes comprehensive tests using React Testing Library and Jest:
+
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+Test files are located in `src/components/__tests__/` and follow the naming convention `*.test.tsx`.
+
+## Deployment
+
+### Vercel (Recommended)
+
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Deploy automatically on every push
+
+### Manual Deployment
+
+1. Build the application:
+
+```bash
+npm run build
+```
+
+2. Start the production server:
+
+```bash
+npm start
+```
+
+## Features in Detail
+
+### Task Management
+
+- **Create**: Add new tasks with validation
+- **View**: See all tasks with completion status
+- **Toggle**: Mark tasks complete/incomplete
+- **Delete**: Remove tasks with confirmation
+
+### PDF Report Generation
+
+- **Comprehensive Reports**: Include all task details
+- **Summary Statistics**: Total tasks, completion rate
+- **Professional Formatting**: Clean, readable PDF layout
+- **Timestamp**: Include generation date and time
+
+### User Interface
+
+- **Responsive Design**: Works on all screen sizes
+- **Visual Feedback**: Clear status indicators
+- **Loading States**: Smooth user experience
+- **Error Handling**: User-friendly error messages
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License.
+
+## Support
+
+For support or questions, please open an issue in the repository.
