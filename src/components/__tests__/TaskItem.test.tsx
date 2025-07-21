@@ -6,12 +6,20 @@ import { useTaskStore } from "../../store/taskStore";
 
 // Mock the store
 jest.mock("../../store/taskStore");
+
+// Mock the API service
 jest.mock("../../services/api", () => ({
   taskApi: {
     toggleTask: jest.fn(),
     deleteTask: jest.fn(),
   },
 }));
+
+// Get the mocked API
+const mockTaskApi = {
+  toggleTask: jest.fn(),
+  deleteTask: jest.fn(),
+};
 
 const mockUseTaskStore = useTaskStore as jest.MockedFunction<
   typeof useTaskStore
@@ -38,6 +46,9 @@ describe("TaskItem", () => {
     mockUseTaskStore.mockReturnValue(mockStoreActions);
     // Mock window.confirm
     window.confirm = jest.fn();
+    // Reset API mocks
+    mockTaskApi.toggleTask.mockClear();
+    mockTaskApi.deleteTask.mockClear();
   });
 
   afterEach(() => {
@@ -62,12 +73,17 @@ describe("TaskItem", () => {
   });
 
   it("calls toggleTask when checkbox is clicked", () => {
+    mockTaskApi.toggleTask.mockResolvedValueOnce({
+      ...mockTask,
+      completed: true,
+    });
+
     render(<TaskItem task={mockTask} />);
 
     const checkbox = screen.getByTitle("Toggle task completion");
     fireEvent.click(checkbox);
 
-    expect(mockStoreActions.toggleTask).toHaveBeenCalledWith("1");
+    expect(mockTaskApi.toggleTask).toHaveBeenCalledWith("1");
   });
 
   it("calls deleteTask when delete button is clicked", () => {
@@ -82,7 +98,7 @@ describe("TaskItem", () => {
     expect(window.confirm).toHaveBeenCalledWith(
       "Are you sure you want to delete this task?"
     );
-    expect(mockStoreActions.deleteTask).toHaveBeenCalledWith("1");
+    expect(mockTaskApi.deleteTask).toHaveBeenCalledWith("1");
   });
 
   it("does not call deleteTask when user cancels confirmation", () => {

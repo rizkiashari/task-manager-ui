@@ -11,6 +11,7 @@ jest.mock("axios", () => ({
   })),
 }));
 
+// Get the mocked instance
 const mockAxiosInstance = {
   get: jest.fn(),
   post: jest.fn(),
