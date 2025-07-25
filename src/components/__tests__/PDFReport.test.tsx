@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { PDFReport } from "../PDFReport";
 import { usePDFReport } from "../../hooks/usePDFReport";
+import { Task } from "@/types/task";
 
 // Mock the hook
 jest.mock("../../hooks/usePDFReport");
@@ -40,8 +41,8 @@ describe("PDFReport", () => {
       title: "Task 1",
       description: "Description 1",
       completed: false,
-      priority: "medium" as const,
-      dueDate: undefined,
+      start_date: "2024-01-15T10:00:00Z",
+      end_date: "2024-01-15T10:00:00Z",
       createdAt: "2024-01-15T10:00:00Z",
       updatedAt: "2024-01-15T10:00:00Z",
     },
@@ -49,13 +50,13 @@ describe("PDFReport", () => {
       id: "2",
       title: "Task 2",
       description: "Description 2",
+      start_date: "2024-01-15T10:00:00Z",
+      end_date: "2024-01-15T10:00:00Z",
       completed: true,
-      priority: "high" as const,
-      dueDate: undefined,
       createdAt: "2024-01-15T10:00:00Z",
       updatedAt: "2024-01-15T10:00:00Z",
     },
-  ];
+  ] as Task[];
 
   const mockGeneratePDF = jest.fn();
   const mockUpdateOptions = jest.fn();
@@ -210,19 +211,6 @@ describe("PDFReport", () => {
     expect(screen.getByText("Include Task List")).toBeInTheDocument();
     expect(screen.getByText("Include Timestamps")).toBeInTheDocument();
     expect(screen.getByText("Sort By")).toBeInTheDocument();
-  });
-
-  it("calls updateOptions when checkbox is changed", () => {
-    mockCanGenerateReport.mockReturnValue(true);
-
-    render(<PDFReport tasks={mockTasks} />);
-
-    const statisticsCheckbox = screen.getByLabelText("Include Statistics");
-    fireEvent.click(statisticsCheckbox);
-
-    expect(mockUpdateOptions).toHaveBeenCalledWith({
-      includeStatistics: false,
-    });
   });
 
   it("calls resetOptions when reset button is clicked", () => {

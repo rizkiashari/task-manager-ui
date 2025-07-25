@@ -5,7 +5,7 @@ import moment from "moment";
 export interface TaskFilters {
   searchTerm: string;
   filter: "all" | "completed" | "pending" | "new";
-  sortBy: "created" | "updated" | "title";
+  sortBy: "created" | "updated" | "title" | "pic_name";
   showCompleted: boolean;
 }
 
@@ -26,7 +26,13 @@ export const useTasks = () => {
 
   // Create new task
   const createTask = useCallback(
-    async (taskData: { title: string; description?: string }) => {
+    async (taskData: {
+      title: string;
+      description?: string;
+      end_date: string;
+      start_date: string;
+      pic_name: string;
+    }) => {
       try {
         addTask({
           ...taskData,
@@ -75,7 +81,8 @@ export const useTasks = () => {
           const searchLower = filters.searchTerm.toLowerCase();
           if (
             !task.title.toLowerCase().includes(searchLower) &&
-            !(task.description?.toLowerCase().includes(searchLower) || false)
+            !(task.description?.toLowerCase().includes(searchLower) || false) &&
+            !(task.pic_name?.toLowerCase().includes(searchLower) || false)
           ) {
             return false;
           }
@@ -115,6 +122,12 @@ export const useTasks = () => {
               return a.completed ? 1 : -1;
             }
             return a.title.localeCompare(b.title);
+
+          case "pic_name":
+            if (a.completed !== b.completed) {
+              return a.completed ? 1 : -1;
+            }
+            return a.pic_name.localeCompare(b.pic_name);
           default:
             return 0;
         }

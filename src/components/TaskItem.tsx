@@ -6,6 +6,7 @@ import { useTaskActions } from "../hooks/useTaskActions";
 import { useTasks } from "../hooks/useTasks";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { SpinnerIcon, CheckmarkIcon, PendingIcon, DeleteIcon } from "./icons";
+import moment from "moment";
 
 interface TaskItemProps {
   task: Task;
@@ -53,6 +54,22 @@ export const TaskItem: React.FC<TaskItemProps> = ({ task }) => {
             >
               {task.title}
             </h3>
+
+            <h3
+              className={`text-lg font-medium ${
+                task.completed ? "line-through text-gray-500" : "text-gray-900"
+              }`}
+            >
+              {task.pic_name}
+            </h3>
+
+            <p
+              className={`text-lg font-medium ${
+                task.completed ? "line-through text-gray-500" : "text-gray-900"
+              }`}
+            >
+              {moment(task.start_date).from(moment(task.end_date))}
+            </p>
 
             {task.description && (
               <p

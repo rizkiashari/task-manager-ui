@@ -202,6 +202,9 @@ export const usePDFReport = () => {
     return {
       title: task.title,
       description: task.description || "No description",
+      end_date: task.end_date || "",
+      start_date: task.start_date || "",
+      pic_name: task.pic_name || "",
       status: task.completed ? "Completed" : "Pending",
       created: moment(task.createdAt).format("MMM DD, YYYY"),
       updated: moment(task.updatedAt).format("MMM DD, YYYY"),

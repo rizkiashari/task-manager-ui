@@ -44,18 +44,6 @@ export const PDFReport: React.FC<PDFReportProps> = ({ tasks }) => {
         <label className="flex items-center">
           <input
             type="checkbox"
-            checked={options.includeStatistics}
-            onChange={(e) =>
-              updateOptions({ includeStatistics: e.target.checked })
-            }
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-          />
-          <span className="ml-2 text-sm text-gray-700">Include Statistics</span>
-        </label>
-
-        <label className="flex items-center">
-          <input
-            type="checkbox"
             checked={options.includeTaskList}
             onChange={(e) =>
               updateOptions({ includeTaskList: e.target.checked })

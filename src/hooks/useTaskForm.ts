@@ -3,6 +3,9 @@ import { useState, useCallback } from "react";
 export interface TaskFormData {
   title: string;
   description: string;
+  end_date: string;
+  start_date: string;
+  pic_name: string;
 }
 
 export interface TaskFormValidation {
@@ -14,6 +17,9 @@ export const useTaskForm = () => {
   const [formData, setFormData] = useState<TaskFormData>({
     title: "",
     description: "",
+    end_date: "",
+    start_date: "",
+    pic_name: "",
   });
   const [errors, setErrors] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -84,7 +90,13 @@ export const useTaskForm = () => {
 
         if (result.success) {
           // Reset form on success
-          setFormData({ title: "", description: "" });
+          setFormData({
+            title: "",
+            description: "",
+            end_date: "",
+            start_date: "",
+            pic_name: "",
+          });
           setShowConfirm(false);
           setErrors([]);
         } else {
@@ -107,7 +119,13 @@ export const useTaskForm = () => {
 
   // Reset form
   const resetForm = useCallback(() => {
-    setFormData({ title: "", description: "" });
+    setFormData({
+      title: "",
+      description: "",
+      end_date: "",
+      start_date: "",
+      pic_name: "",
+    });
     setErrors([]);
     setIsSubmitting(false);
     setShowConfirm(false);

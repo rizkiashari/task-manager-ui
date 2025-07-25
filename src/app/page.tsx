@@ -116,7 +116,7 @@ export default function Home() {
                     <input
                       type="text"
                       id="search"
-                      placeholder="Search by title or description..."
+                      placeholder="Search by title or or pic name or description..."
                       value={filters.searchTerm}
                       onChange={(e) =>
                         updateFilters({ searchTerm: e.target.value })
@@ -178,6 +178,7 @@ export default function Home() {
                       <option value="created">Created Date</option>
                       <option value="updated">Updated Date</option>
                       <option value="title">Title</option>
+                      <option value="pic_name">Pic Name</option>
                     </select>
                   </div>
                 </div>

@@ -33,6 +33,9 @@ describe("AddTaskForm", () => {
       formData: {
         title: "",
         description: "",
+        end_date: "",
+        start_date: "",
+        pic_name: "",
       },
       errors: [],
       isSubmitting: false,
@@ -65,6 +68,9 @@ describe("AddTaskForm", () => {
       formData: {
         title: "Test",
         description: "Test Description",
+        end_date: "2024-07-28T10:30:00.000Z",
+        start_date: "2024-06-28T10:30:00.000Z",
+        pic_name: "Xinx Han",
       },
       errors: [],
       isSubmitting: false,
@@ -92,6 +98,9 @@ describe("AddTaskForm", () => {
       formData: {
         title: "Te",
         description: "",
+        end_date: "2024-07-28T10:30:00.000Z",
+        start_date: "2024-06-28T10:30:00.000Z",
+        pic_name: "Xinx Han",
       },
       errors: ["Title must be at least 3 characters long"],
       isSubmitting: false,
@@ -120,6 +129,9 @@ describe("AddTaskForm", () => {
       formData: {
         title: "Valid Title",
         description: "a".repeat(501),
+        end_date: "2024-07-28T10:30:00.000Z",
+        start_date: "2024-06-28T10:30:00.000Z",
+        pic_name: "Xinx Han",
       },
       errors: ["Description must be less than 500 characters"],
       isSubmitting: false,
@@ -149,6 +161,9 @@ describe("AddTaskForm", () => {
       formData: {
         title: "Test Task",
         description: "Test Description",
+        end_date: "2024-07-28T10:30:00.000Z",
+        start_date: "2024-06-28T10:30:00.000Z",
+        pic_name: "Xinx Han",
       },
       errors: [],
       isSubmitting: false,
@@ -182,6 +197,9 @@ describe("AddTaskForm", () => {
       formData: {
         title: "Test Task",
         description: "Test Description",
+        end_date: "2024-07-28T10:30:00.000Z",
+        start_date: "2024-06-28T10:30:00.000Z",
+        pic_name: "Xinx Han",
       },
       errors: [],
       isSubmitting: false,
@@ -212,6 +230,9 @@ describe("AddTaskForm", () => {
       formData: {
         title: "Test Task",
         description: "Test Description",
+        end_date: "2024-07-28T10:30:00.000Z",
+        start_date: "2024-06-28T10:30:00.000Z",
+        pic_name: "Xinx Han",
       },
       errors: [],
       isSubmitting: true,
@@ -239,6 +260,9 @@ describe("AddTaskForm", () => {
       formData: {
         title: "a".repeat(100),
         description: "",
+        end_date: "2024-07-28T10:30:00.000Z",
+        start_date: "2024-06-28T10:30:00.000Z",
+        pic_name: "Xinx Han",
       },
       errors: [],
       isSubmitting: false,
@@ -265,6 +289,9 @@ describe("AddTaskForm", () => {
       formData: {
         title: "",
         description: "a".repeat(500),
+        end_date: "2024-07-28T10:30:00.000Z",
+        start_date: "2024-06-28T10:30:00.000Z",
+        pic_name: "Xinx Han",
       },
       errors: [],
       isSubmitting: false,

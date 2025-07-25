@@ -8,6 +8,9 @@ export const dummyTasks: Task[] = [
     description:
       "Write comprehensive documentation for the task management system including API endpoints, component structure, and deployment guide.",
     completed: true,
+    start_date: "2024-07-15T10:30:00.000Z",
+    end_date: "2024-07-28T10:30:00.000Z",
+    pic_name: "John Doe",
     createdAt: "2024-01-15T10:30:00.000Z",
     updatedAt: "2024-01-16T14:20:00.000Z",
   },
@@ -17,6 +20,9 @@ export const dummyTasks: Task[] = [
     description:
       "Add user login, registration, and session management features to the application.",
     completed: false,
+    start_date: "2024-07-10T10:30:00.000Z",
+    end_date: "2024-07-28T10:30:00.000Z",
+    pic_name: "John Doe",
     createdAt: "2024-01-16T09:15:00.000Z",
     updatedAt: "2024-01-16T09:15:00.000Z",
   },
@@ -25,6 +31,9 @@ export const dummyTasks: Task[] = [
     title: "Design Mobile Responsive UI",
     description: "Optimize the user interface for mobile devices and tablets.",
     completed: false,
+    start_date: "2024-06-15T10:30:00.000Z",
+    end_date: "2024-07-28T10:30:00.000Z",
+    pic_name: "John Doe",
     createdAt: "2024-01-17T11:45:00.000Z",
     updatedAt: "2024-01-17T11:45:00.000Z",
   },
@@ -34,44 +43,11 @@ export const dummyTasks: Task[] = [
     description:
       "Configure Jest and React Testing Library for unit and integration tests.",
     completed: true,
+    start_date: "2024-07-05T10:30:00.000Z",
+    end_date: "2024-07-28T10:30:00.000Z",
+    pic_name: "John Doe",
     createdAt: "2024-01-18T08:30:00.000Z",
     updatedAt: "2024-01-19T16:45:00.000Z",
-  },
-  {
-    id: "5",
-    title: "Deploy to Production",
-    description:
-      "Configure CI/CD pipeline and deploy the application to production environment.",
-    completed: false,
-    createdAt: "2024-01-19T13:20:00.000Z",
-    updatedAt: "2024-01-19T13:20:00.000Z",
-  },
-  {
-    id: "6",
-    title: "Performance Optimization",
-    description:
-      "Implement code splitting, lazy loading, and other performance optimizations.",
-    completed: false,
-    createdAt: "2024-01-20T10:00:00.000Z",
-    updatedAt: "2024-01-20T10:00:00.000Z",
-  },
-  {
-    id: "7",
-    title: "Security Audit",
-    description:
-      "Conduct security review and implement necessary security measures.",
-    completed: false,
-    createdAt: "2024-01-21T14:30:00.000Z",
-    updatedAt: "2024-01-21T14:30:00.000Z",
-  },
-  {
-    id: "8",
-    title: "User Feedback Integration",
-    description:
-      "Add feedback forms and user rating system to collect user opinions.",
-    completed: true,
-    createdAt: "2024-01-22T09:45:00.000Z",
-    updatedAt: "2024-01-23T11:15:00.000Z",
   },
 ];
 

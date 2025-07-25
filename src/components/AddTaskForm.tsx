@@ -77,6 +77,61 @@ export const AddTaskForm: React.FC = () => {
           </div>
         </div>
 
+        <div>
+          <label
+            htmlFor="start_date"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Start Date *
+          </label>
+          <input
+            type="date"
+            id="start_date"
+            value={formData.start_date}
+            onChange={(e) => updateField("start_date", e.target.value)}
+            className={`w-full text-gray-500 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              errors.length > 0 ? "border-red-300" : "border-gray-300"
+            }`}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="end_date"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            End Date *
+          </label>
+          <input
+            type="date"
+            id="end_date"
+            value={formData.end_date}
+            onChange={(e) => updateField("end_date", e.target.value)}
+            className={`w-full text-gray-500 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              errors.length > 0 ? "border-red-300" : "border-gray-300"
+            }`}
+          />
+        </div>
+
+        <div>
+          <label
+            htmlFor="pic_name"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Pic Name *
+          </label>
+          <input
+            type="text"
+            id="pic_name"
+            placeholder="Enter pic name..."
+            value={formData.pic_name}
+            onChange={(e) => updateField("pic_name", e.target.value)}
+            className={`w-full text-gray-500 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+              errors.length > 0 ? "border-red-300" : "border-gray-300"
+            }`}
+          />
+        </div>
+
         {/* Description Input */}
         <div>
           <label
