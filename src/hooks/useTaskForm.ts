@@ -1,3 +1,4 @@
+import moment from "moment";
 import { useState, useCallback } from "react";
 
 export interface TaskFormData {
@@ -36,6 +37,31 @@ export const useTaskForm = () => {
       newErrors.push("Title must be at least 3 characters long");
     } else if (formData.title.trim().length > 100) {
       newErrors.push("Title must be less than 100 characters");
+    }
+
+    // Start date validation
+    if (!formData.start_date) {
+      newErrors.push("Start date is required");
+    } else if (
+      formData.end_date &&
+      moment(formData.start_date).isAfter(moment(formData.end_date))
+    ) {
+      newErrors.push("Start date cannot be after end date");
+    }
+
+    // End date validation
+    if (!formData.end_date) {
+      newErrors.push("End date is required");
+    } else if (
+      formData.start_date &&
+      moment(formData.end_date).isBefore(moment(formData.start_date))
+    ) {
+      newErrors.push("End date cannot be before start date");
+    }
+
+    // Pic Name Validation
+    if (!formData.pic_name.trim()) {
+      newErrors.push("Pic name is required");
     }
 
     // Description validation
