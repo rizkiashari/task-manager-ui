@@ -1,5 +1,4 @@
 import { useState, useCallback } from "react";
-import { Task } from "../types/task";
 
 export interface TaskActionState {
   isToggling: boolean;

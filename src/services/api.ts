@@ -39,7 +39,7 @@ export const taskApi = {
   },
 
   // Delete a task
-  async deleteTask(taskId: string): Promise<void> {
+  async deleteTask(): Promise<void> {
     try {
       await delay(200); // Simulate network delay
       // In dummy mode, we don't actually delete from the dummy data
